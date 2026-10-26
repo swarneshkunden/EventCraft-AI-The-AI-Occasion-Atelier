@@ -1,0 +1,16 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.coverage
+htmlcov
+.git
+.gitignore
+.env
+*.db
+*.sqlite3
+uploads/
+node_modules
+.DS_Store
+Thumbs.db
