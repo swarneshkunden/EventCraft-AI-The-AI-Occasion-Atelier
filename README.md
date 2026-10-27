@@ -78,7 +78,7 @@ The commands below use PowerShell and assume you opened this project’s root fo
 2. Install backend dependencies and create your local environment file:
 
    ```powershell
-   python -m pip install -r backend\requirements.txt
+   python -m pip install -r requirements.txt
    Copy-Item .env.example .env
    ```
 

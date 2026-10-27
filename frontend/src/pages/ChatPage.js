@@ -46,7 +46,7 @@ export async function renderChatPage() {
       <div style="padding: 14px 24px; border-bottom: 1px solid var(--clr-border); background: var(--clr-surface); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div>
           <h2 style="font-size: 1.2rem; font-weight: 800; display: flex; align-items: center; gap: 8px;">
-            <span>Ã¢Å“Â¨</span> AI Event Co-Pilot
+            <span>✨</span> AI Event Co-Pilot
           </h2>
           <p style="font-size: 0.8rem; color: var(--clr-text-muted);">
             Context-aware execution assistant with access to your budget, tasks, and vendors.
@@ -54,7 +54,7 @@ export async function renderChatPage() {
         </div>
 
         <button id="btn-generate-ideas" class="btn btn-primary btn-sm" title="Get theme, decor, menu, and activity recommendations">
-          Ã°Å¸â€™Â¡ Generate Creative Ideas
+          💡 Generate Creative Ideas
         </button>
       </div>
 
@@ -69,7 +69,7 @@ export async function renderChatPage() {
           chatHistory.length === 0
             ? `
           <div style="text-align: center; margin: auto; max-width: 500px; color: var(--clr-text-muted);">
-            <div style="font-size: 40px; margin-bottom: 12px;">Ã°Å¸Â¤â€“</div>
+            <div style="font-size: 40px; margin-bottom: 12px;">🤖</div>
             <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--clr-text); margin-bottom: 6px;">
               Your Event Execution Co-Pilot
             </h3>
@@ -85,7 +85,7 @@ export async function renderChatPage() {
                 .map(
                   (p) => `
                 <button class="chip prompt-chip" style="text-align: left; padding: 8px 14px;">
-                  Ã°Å¸â€™Â¬ ${escapeHtml(p)}
+                  💬 ${escapeHtml(p)}
                 </button>
               `
                 )
@@ -200,7 +200,7 @@ export function initChatPageEvents() {
   document.querySelectorAll('.prompt-chip').forEach((chip) => {
     chip.addEventListener('click', () => {
       if (textarea) {
-        textarea.value = chip.textContent.replace('Ã°Å¸â€™Â¬', '').trim();
+        textarea.value = chip.textContent.replace('💬', '').trim();
         handleSend();
       }
     });
@@ -218,7 +218,7 @@ export function initChatPageEvents() {
     try {
       const ideas = await getEventIdeas(event.id);
       btn.disabled = false;
-      btn.textContent = 'Ã°Å¸â€™Â¡ Refresh Ideas';
+      btn.textContent = '💡 Refresh Ideas';
 
       ideasBox.style.display = 'block';
 
@@ -227,9 +227,9 @@ export function initChatPageEvents() {
       ideasBox.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
           <h4 style="font-weight: 700; color: var(--clr-primary-light);">
-            Ã°Å¸Å½Â¨ Personalized Themes, Decor & Menu Inspiration
+            🎨 Personalized Themes, Decor & Menu Inspiration
           </h4>
-          <button id="btn-close-ideas" class="btn btn-ghost btn-sm" style="font-size: 0.8rem;">Ã¢Å“â€¢ Close</button>
+          <button id="btn-close-ideas" class="btn btn-ghost btn-sm" style="font-size: 0.8rem;">✕ Close</button>
         </div>
         <div style="font-size: 0.85rem; line-height: 1.6; color: var(--clr-text); white-space: pre-wrap;">
           ${escapeHtml(rawText)}
@@ -244,7 +244,7 @@ export function initChatPageEvents() {
     } catch (err) {
       showToast(err.message || 'Failed to generate ideas', 'error');
       btn.disabled = false;
-      btn.textContent = 'Ã°Å¸â€™Â¡ Generate Creative Ideas';
+      btn.textContent = '💡 Generate Creative Ideas';
     }
   });
 }

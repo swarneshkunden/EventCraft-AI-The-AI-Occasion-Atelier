@@ -70,10 +70,10 @@ export async function renderGuestsPage() {
 
           <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <button id="btn-import-csv-modal" class="btn btn-secondary">
-              Ã°Å¸â€œÂ¥ Import CSV
+              📥 Import CSV
             </button>
             <button id="btn-add-guest-modal" class="btn btn-primary">
-              Ã¯Â¼â€¹ Add Guest
+              ï¼‹ Add Guest
             </button>
           </div>
         </div>
@@ -104,7 +104,7 @@ export async function renderGuestsPage() {
             ? `
           <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--clr-border);">
             <div style="font-size: 0.75rem; color: var(--clr-text-muted); font-weight: 600; margin-bottom: 6px;">
-              Ã°Å¸Â¥â€” Dietary Requirements for Caterer:
+              🥗 Dietary Requirements for Caterer:
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               ${Object.entries(dietaryCounts)
@@ -129,7 +129,7 @@ export async function renderGuestsPage() {
           <input
             type="text"
             id="input-guest-search"
-            placeholder="Ã°Å¸â€Â Search guests by name or email..."
+            placeholder="🔍 Search guests by name or email..."
             style="max-width: 300px;"
             value="${escapeHtml(searchQuery)}"
           />
@@ -198,13 +198,13 @@ function renderGuestRows(guests, filter, query) {
           ${escapeHtml(g.name)}
         </td>
         <td style="padding: 12px 16px; font-size: 0.8rem; color: var(--clr-text-muted);">
-          ${escapeHtml(g.email || g.phone || 'Ã¢â‚¬â€')}
+          ${escapeHtml(g.email || g.phone || '—')}
         </td>
         <td style="padding: 12px 16px;">
           <select class="guest-rsvp-select" data-guest-id="${g.id}" aria-label="RSVP status for ${escapeHtml(g.name)}" style="font-size: 0.75rem; padding: 4px 6px; width: auto;">
-            <option value="pending" ${g.rsvp_status === 'pending' ? 'selected' : ''}>Ã¢ÂÂ³ Pending</option>
-            <option value="confirmed" ${g.rsvp_status === 'confirmed' ? 'selected' : ''}>Ã¢Å“â€œ Confirmed</option>
-            <option value="declined" ${g.rsvp_status === 'declined' ? 'selected' : ''}>Ã¢Å“â€¢ Declined</option>
+            <option value="pending" ${g.rsvp_status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
+            <option value="confirmed" ${g.rsvp_status === 'confirmed' ? 'selected' : ''}>✓ Confirmed</option>
+            <option value="declined" ${g.rsvp_status === 'declined' ? 'selected' : ''}>✕ Declined</option>
           </select>
         </td>
         <td style="padding: 12px 16px; font-size: 0.8rem; color: var(--clr-text-dim);">
@@ -215,7 +215,7 @@ function renderGuestRows(guests, filter, query) {
         </td>
         <td style="padding: 12px 16px; text-align: right;">
           <button class="btn btn-ghost btn-sm btn-delete-guest" data-guest-id="${g.id}" style="color: var(--clr-danger); padding: 4px 8px;">
-            Ã¢Å“â€¢
+            ✕
           </button>
         </td>
       </tr>
@@ -305,8 +305,8 @@ function openAddGuestModal(eventId) {
     <div class="modal-backdrop" id="modal-add-guest">
       <div class="modal" role="dialog" aria-labelledby="modal-add-guest-title" aria-modal="true">
         <div class="modal-header">
-          <h3 class="modal-title" id="modal-add-guest-title">Ã°Å¸â€˜Â¥ Add New Guest</h3>
-          <button class="btn btn-ghost btn-sm" id="btn-close-add-guest">Ã¢Å“â€¢</button>
+          <h3 class="modal-title" id="modal-add-guest-title">👥 Add New Guest</h3>
+          <button class="btn btn-ghost btn-sm" id="btn-close-add-guest">✕</button>
         </div>
 
         <form id="form-add-guest" class="modal-body">
@@ -416,8 +416,8 @@ Vikram Mehta,vikram@test.com,+91 9876543213,declined,,Wheelchair access`;
     <div class="modal-backdrop" id="modal-import-csv">
       <div class="modal" role="dialog" aria-labelledby="modal-import-title" aria-modal="true">
         <div class="modal-header">
-          <h3 class="modal-title" id="modal-import-title">Ã°Å¸â€œÂ¥ Import Guests from CSV</h3>
-          <button class="btn btn-ghost btn-sm" id="btn-close-import">Ã¢Å“â€¢</button>
+          <h3 class="modal-title" id="modal-import-title">📥 Import Guests from CSV</h3>
+          <button class="btn btn-ghost btn-sm" id="btn-close-import">✕</button>
         </div>
 
         <div class="modal-body">
@@ -428,7 +428,7 @@ Vikram Mehta,vikram@test.com,+91 9876543213,declined,,Wheelchair access`;
           <div style="background: var(--clr-surface-2); padding: 12px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 0.8rem; color: var(--clr-text-muted);">Need a format sample?</span>
             <button id="btn-download-sample-csv" class="btn btn-secondary btn-sm">
-              Ã°Å¸â€œâ€ž Download Sample CSV
+              📄 Download Sample CSV
             </button>
           </div>
 

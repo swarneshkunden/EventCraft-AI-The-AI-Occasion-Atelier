@@ -76,15 +76,15 @@ export function openNewEventModal(eventToEdit = null) {
 
             <div class="grid-2" id="occasion-cards" style="gap: 12px; margin-bottom: 18px;">
               <div class="chip card ${eventType === 'wedding' ? 'selected' : ''}" data-type="wedding" style="border-radius: var(--radius-md); padding: 14px; text-align: left; cursor: pointer;">
-                <div style="font-size: 1.1rem; margin-bottom: 4px;">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Wedding</div>
+                <div style="font-size: 1.1rem; margin-bottom: 4px;">💍 Wedding</div>
                 <div class="text-muted" style="font-size: 0.75rem;">Ceremony, reception, banquet & entertainment</div>
               </div>
               <div class="chip card ${eventType === 'birthday' ? 'selected' : ''}" data-type="birthday" style="border-radius: var(--radius-md); padding: 14px; text-align: left; cursor: pointer;">
-                <div style="font-size: 1.1rem; margin-bottom: 4px;">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â½ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ Milestone Birthday</div>
+                <div style="font-size: 1.1rem; margin-bottom: 4px;">🎂 Milestone Birthday</div>
                 <div class="text-muted" style="font-size: 0.75rem;">Intimate or grand milestone party</div>
               </div>
               <div class="chip card ${eventType === 'community' ? 'selected' : ''}" data-type="community" style="border-radius: var(--radius-md); padding: 14px; text-align: left; cursor: pointer;">
-                <div style="font-size: 1.1rem; margin-bottom: 4px;">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â½ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âª Community Festival</div>
+                <div style="font-size: 1.1rem; margin-bottom: 4px;">🎪 Community Festival</div>
                 <div class="text-muted" style="font-size: 0.75rem;">Neighborhood gathering, cultural fair</div>
               </div>
             </div>
@@ -188,11 +188,11 @@ export function openNewEventModal(eventToEdit = null) {
             <div class="form-group" style="margin-bottom: 16px;">
               <label>Atmosphere & Vibe</label>
               <div class="chip-group" id="theme-chips">
-                <span class="chip ${atmosphere === 'Royal Regal' ? 'selected' : ''}" data-vibe="Royal Regal">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œ Royal Regal</span>
-                <span class="chip ${atmosphere === 'Romantic Candlelight' ? 'selected' : ''}" data-vibe="Romantic Candlelight">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Romantic Candlelight</span>
-                <span class="chip ${atmosphere === 'Rustic Elegance' ? 'selected' : ''}" data-vibe="Rustic Elegance">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ Rustic Elegance</span>
-                <span class="chip ${atmosphere === 'Modern Haute Minimalist' ? 'selected' : ''}" data-vibe="Modern Haute Minimalist">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨ Haute Minimalist</span>
-                <span class="chip ${atmosphere === 'Festive Carnival' ? 'selected' : ''}" data-vibe="Festive Carnival">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â½ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â° Festive & Vibrant</span>
+                <span class="chip ${atmosphere === 'Royal Regal' ? 'selected' : ''}" data-vibe="Royal Regal">👑 Royal Regal</span>
+                <span class="chip ${atmosphere === 'Romantic Candlelight' ? 'selected' : ''}" data-vibe="Romantic Candlelight">🕯️ Romantic Candlelight</span>
+                <span class="chip ${atmosphere === 'Rustic Elegance' ? 'selected' : ''}" data-vibe="Rustic Elegance">🌿 Rustic Elegance</span>
+                <span class="chip ${atmosphere === 'Modern Haute Minimalist' ? 'selected' : ''}" data-vibe="Modern Haute Minimalist">✨ Haute Minimalist</span>
+                <span class="chip ${atmosphere === 'Festive Carnival' ? 'selected' : ''}" data-vibe="Festive Carnival">🎉 Festive & Vibrant</span>
               </div>
             </div>
 

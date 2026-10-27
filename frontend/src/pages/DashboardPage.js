@@ -105,7 +105,7 @@ export async function renderDashboardPage() {
           <div class="dashboard-hero-details">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
               ${renderInlineField('event_type', `<span class="badge badge-gold" style="text-transform: uppercase;">${escapeHtml(event.event_type)}</span>`, 'occasion type')}
-              ${renderInlineField('atmosphere', `<span class="badge badge-muted">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¨ ${escapeHtml(theme)}</span>`, 'atmosphere')}
+              ${renderInlineField('atmosphere', `<span class="badge badge-muted">✨ ${escapeHtml(theme)}</span>`, 'atmosphere')}
               ${
                 days !== null
                   ? `<span class="badge ${days < 0 ? 'badge-muted' : days <= 14 ? 'badge-danger' : 'badge-navy'}">
@@ -154,7 +154,7 @@ export async function renderDashboardPage() {
             </div>
           </div>
           <button class="btn btn-ghost btn-sm" data-dashboard-route="${remainingBudget < 0 ? 'budget' : 'tasks'}" style="color: var(--clr-warning); font-weight: 700;">
-            Resolve ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢
+            Resolve →
           </button>
         </div>
       `
@@ -176,7 +176,7 @@ export async function renderDashboardPage() {
             </div>
           </div>
           <div style="font-size: 0.75rem; margin-top: 6px; font-weight: 600; color: ${remainingBudget < 0 ? 'var(--clr-danger)' : 'var(--clr-success)'};">
-            ${remainingBudget < 0 ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Over budget by ' + formatCurrency(Math.abs(remainingBudget), currency) : 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ ' + formatCurrency(remainingBudget, currency) + ' available'}
+            ${remainingBudget < 0 ? '⚠️ Over budget by ' + formatCurrency(Math.abs(remainingBudget), currency) : '✓ ' + formatCurrency(remainingBudget, currency) + ' available'}
           </div>
         </div>
 
@@ -247,7 +247,7 @@ export async function renderDashboardPage() {
               <p class="text-muted" style="font-size: 0.8rem;">Allocated vs available reserves</p>
             </div>
             <button class="btn btn-ghost btn-sm" data-dashboard-route="budget">
-              Details ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢
+              Details →
             </button>
           </div>
 
@@ -259,10 +259,10 @@ export async function renderDashboardPage() {
           <div class="card-header">
             <div>
               <h3 class="card-title font-serif">Next Critical Actions</h3>
-              <p class="text-muted" style="font-size: 0.8rem;">Prerequisites met ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Ready for immediate execution</p>
+              <p class="text-muted" style="font-size: 0.8rem;">Prerequisites met • Ready for immediate execution</p>
             </div>
             <button class="btn btn-ghost btn-sm" data-dashboard-route="tasks">
-              All Tasks ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢
+              All Tasks →
             </button>
           </div>
 
@@ -286,7 +286,7 @@ export async function renderDashboardPage() {
                       ${escapeHtml(t.title)}
                     </div>
                     <div style="font-size: 0.75rem; color: var(--clr-text-muted); margin-top: 2px;">
-                      Due: ${formatDate(t.due_date)} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ <span class="badge badge-gold" style="font-size: 0.65rem;">Priority ${t.priority}</span>
+                      Due: ${formatDate(t.due_date)} • <span class="badge badge-gold" style="font-size: 0.65rem;">Priority ${t.priority}</span>
                     </div>
                   </div>
                   <span class="badge badge-success" style="font-size: 0.7rem;">Actionable Now</span>

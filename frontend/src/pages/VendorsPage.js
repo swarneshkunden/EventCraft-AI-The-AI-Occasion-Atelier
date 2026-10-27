@@ -57,7 +57,7 @@ export async function renderVendorsPage() {
 
           <div style="display: flex; gap: 10px;">
             <button id="btn-add-vendor-modal" class="btn btn-primary">
-              ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¹ Add Vendor
+              ï¼‹ Add Vendor
             </button>
           </div>
         </div>
@@ -138,7 +138,7 @@ function renderVendorsGrid(vendors, filter, currency) {
   if (filtered.length === 0) {
     return `
       <div class="card" style="grid-column: 1 / -1; padding: 40px; text-align: center; color: var(--clr-text-muted);">
-        ${vendors.length === 0 ? 'No vendors added yet. Click "ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¹ Add Vendor" above.' : 'No vendors in this category.'}
+        ${vendors.length === 0 ? 'No vendors added yet. Click "ï¼‹ Add Vendor" above.' : 'No vendors in this category.'}
       </div>
     `;
   }
@@ -158,7 +158,7 @@ function renderVendorsGrid(vendors, filter, currency) {
             </span>
             <h3 style="font-size: 1.2rem; font-weight: 700;">${escapeHtml(v.name)}</h3>
             <div style="font-size: 0.8rem; color: var(--clr-text-muted);">
-              ${v.contact ? `ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¾ ${escapeHtml(v.contact)}` : 'No contact info'}
+              ${v.contact ? `📞 ${escapeHtml(v.contact)}` : 'No contact info'}
             </div>
           </div>
 
@@ -188,10 +188,10 @@ function renderVendorsGrid(vendors, filter, currency) {
         <div style="margin-top: 12px; border-top: 1px solid var(--clr-border); padding-top: 12px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--clr-accent-light);">
-              ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨ AI Intelligence (${checklist.length + questions.length} items)
+              ✨ AI Intelligence (${checklist.length + questions.length} items)
             </span>
             <button class="btn btn-ghost btn-sm btn-generate-questions" data-vendor-id="${v.id}" style="font-size: 0.75rem; padding: 2px 8px;">
-              ${checklist.length > 0 ? 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ Refresh AI Checklist' : 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ Generate Questions & Checklist'}
+              ${checklist.length > 0 ? '🔄 Refresh AI Checklist' : '⚡ Generate Questions & Checklist'}
             </button>
           </div>
 
@@ -294,7 +294,7 @@ export function initVendorsPageEvents() {
     } catch (err) {
       showToast(err.message || 'Failed to generate questions', 'error');
       btn.disabled = false;
-      btn.textContent = 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ Generate Questions';
+      btn.textContent = '⚡ Generate Questions';
     }
   });
 
@@ -332,8 +332,8 @@ function openAddVendorModal(eventId, currency) {
     <div class="modal-backdrop" id="modal-add-vendor">
       <div class="modal" role="dialog" aria-labelledby="modal-add-vendor-title" aria-modal="true">
         <div class="modal-header">
-          <h3 class="modal-title" id="modal-add-vendor-title">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Add Vendor to Directory</h3>
-          <button class="btn btn-ghost btn-sm" id="btn-close-add-vendor">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢</button>
+          <h3 class="modal-title" id="modal-add-vendor-title">🤝 Add Vendor to Directory</h3>
+          <button class="btn btn-ghost btn-sm" id="btn-close-add-vendor">✕</button>
         </div>
 
         <form id="form-add-vendor" class="modal-body">
