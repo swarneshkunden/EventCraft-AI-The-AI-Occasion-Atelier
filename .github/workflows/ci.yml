@@ -27,7 +27,7 @@ jobs:
         env:
           APP_ENV: test
           APP_SECRET_KEY: ci-only-secret-key-at-least-32-characters
-          DATABASE_URL: sqlite:///:memory:
+          DATABASE_URL: "sqlite:///:memory:"
         run: python -m pytest -q
       - name: Audit Python dependencies
         run: |
