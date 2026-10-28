@@ -1,6 +1,7 @@
 """Deterministic plan-health scoring and reviewable crisis proposals."""
 import re
 from datetime import UTC, date, datetime, timedelta
+from typing import Any
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -17,11 +18,13 @@ from app.models.models import (
 from app.validators.schemas import CrisisIntent
 
 
-def _value(value):
+def _value(value: Any) -> Any:
+    """Return an enum's value or the original value."""
     return value.value if hasattr(value, "value") else value
 
 
 def _date(value: str | None) -> date | None:
+    """Parse an ISO date, returning None when the value is invalid."""
     if not value:
         return None
     try:
@@ -31,6 +34,7 @@ def _date(value: str | None) -> date | None:
 
 
 def _has_dependency_cycle(tasks: list[Task]) -> bool:
+    """Detect cycles among task dependencies."""
     by_title = {task.title: task.title for task in tasks}
     graph = {
         task.title: [
@@ -44,6 +48,7 @@ def _has_dependency_cycle(tasks: list[Task]) -> bool:
     visited: set[str] = set()
 
     def visit(title: str) -> bool:
+        """Check whether this task reaches an active task in the traversal."""
         if title in visiting:
             return True
         if title in visited:
@@ -81,6 +86,7 @@ def calculate_plan_health(
     deductions: list[dict] = []
 
     def add(key: str, points: int, reason: str, next_step: str) -> None:
+        """Record a non-zero plan-health deduction."""
         if points > 0:
             deductions.append({
                 "key": key,

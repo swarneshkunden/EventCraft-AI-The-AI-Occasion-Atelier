@@ -83,11 +83,13 @@ for router in [
 # ── Health check ──────────────────────────────────────────────────────────────
 @app.get("/api/health", tags=["health"])
 async def health() -> dict:
+    """Return the application process health status."""
     return {"status": "ok"}
 
 
 @app.get("/healthz", tags=["health"])
 async def healthz() -> dict:
+    """Check that the application can reach its database."""
     try:
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
