@@ -6,12 +6,12 @@ import asyncio
 import logging
 import time
 from collections import OrderedDict
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, Optional
 
+import jwt
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
-import jwt
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config.settings import get_settings
@@ -259,9 +259,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return (
             "/budget/ai-split" in path
             or "/budget/scenario" in path
-            or path.endswith("/tasks/generate")
-            or path.endswith("/generate-questions")
-            or path.endswith("/chat/ideas")
+            or path.endswith(("/tasks/generate", "/generate-questions", "/chat/ideas"))
             or (path.endswith("/chat") and method == "POST")
             or ("/plan-health/crisis" in path and method == "POST")
         )

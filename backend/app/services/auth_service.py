@@ -5,11 +5,11 @@ Uses bcrypt for hashing and HS256 JWTs for tokens.
 import hashlib
 import logging
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
@@ -36,7 +36,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 # ── JWT access token ──────────────────────────────────────────────────────────
 
 def create_access_token(user_id: str) -> str:
-    expires = datetime.now(timezone.utc) + timedelta(
+    expires = datetime.now(UTC) + timedelta(
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
     payload = {"sub": user_id, "exp": expires, "type": "access"}
@@ -61,7 +61,7 @@ def _hash_token(raw: str) -> str:
 def create_refresh_token(user_id: str, db: Session) -> str:
     raw = secrets.token_urlsafe(48)
     token_hash = _hash_token(raw)
-    expires = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    expires = datetime.now(UTC) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     record = RefreshToken(user_id=user_id, token_hash=token_hash, expires_at=expires)
     db.add(record)
     db.flush()
@@ -73,10 +73,10 @@ def rotate_refresh_token(raw: str, db: Session) -> tuple[str, str]:
     token_hash = _hash_token(raw)
     record = (
         db.query(RefreshToken)
-        .filter(RefreshToken.token_hash == token_hash, RefreshToken.revoked == False)
+        .filter(RefreshToken.token_hash == token_hash, RefreshToken.revoked.is_(False))
         .first()
     )
-    if not record or record.expires_at < datetime.now(timezone.utc):
+    if not record or record.expires_at < datetime.now(UTC):
         raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
 
     # Revoke old token, issue new one
@@ -88,7 +88,7 @@ def rotate_refresh_token(raw: str, db: Session) -> tuple[str, str]:
 
 def revoke_all_user_tokens(user_id: str, db: Session) -> None:
     db.query(RefreshToken).filter(
-        RefreshToken.user_id == user_id, RefreshToken.revoked == False
+        RefreshToken.user_id == user_id, RefreshToken.revoked.is_(False)
     ).update({"revoked": True})
 
 
@@ -99,25 +99,23 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
     db: Session = Depends(get_db),
 ) -> User:
-    token = None
     # Try Authorization header first, then httpOnly cookie
-    if credentials:
-        token = credentials.credentials
-    else:
-        token = request.cookies.get("access_token")
+    token = credentials.credentials if credentials else request.cookies.get("access_token")
 
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     try:
         payload = decode_access_token(token)
-        if payload.get("type") != "access":
-            raise ValueError("Wrong token type")
-        user_id = payload["sub"]
-    except Exception:
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token") from None
+    if not isinstance(payload, dict) or payload.get("type") != "access":
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    user_id = payload.get("sub")
+    if not isinstance(user_id, str) or not user_id:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-    user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
+    user = db.query(User).filter(User.id == user_id, User.is_active.is_(True)).first()
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
 

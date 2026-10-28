@@ -125,20 +125,29 @@ Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue
 Remove-Item Env:DATABASE_URL_DIRECT -ErrorAction SilentlyContinue
 Remove-Item Env:TEST_DATABASE_URL -ErrorAction SilentlyContinue
 Set-Location backend
-python -m pytest -q
+python -m pip install pytest-cov
+python -m pytest --cov=app --cov-fail-under=89 -q
 ```
 
 To run the same suite against PostgreSQL, set `TEST_DATABASE_URL` to a dedicated disposable database (for example, a separate Neon test branch) and run `python -m pytest -q`. Tests create and drop application tables and the PostgreSQL migration test recreates the schema. **Never point `TEST_DATABASE_URL` at a database containing data you need.**
 
-Check frontend JavaScript syntax from the project root:
+Run the Python lint gate from the project root (install Ruff into your development environment first):
 
 ```powershell
-Get-ChildItem frontend\src -Recurse -Filter *.js | ForEach-Object { node --check $_.FullName }
+python -m pip install ruff
+python -m ruff check --config backend/pyproject.toml backend scripts
 ```
 
-The test suite covers authentication and ownership, validation, error handling, rate limits, security headers, CSV handling, budget and task APIs, and Plan Health proposal workflows. Frontend syntax checking is not a substitute for browser testing.
+Run frontend utility tests and syntax checks:
 
-The latest local verification recorded for this revision is **127 backend tests passed** and **19 JavaScript modules syntax-checked**. The test run emitted one Starlette/httpx deprecation warning. These results do not certify a production deployment.
+```powershell
+Set-Location frontend
+$env:TZ = "America/Los_Angeles"
+npm test
+Get-ChildItem src -Recurse -Filter *.js | ForEach-Object { node --check $_.FullName }
+```
+
+The backend tests cover authentication and ownership, validation, error handling, rate limits, security headers, CSV handling, budget and task APIs, and Plan Health proposal workflows. CI enforces at least 89% backend line coverage. Frontend tests cover formatting and date-only timezone behavior. CI runs both test suites, JavaScript syntax checks, Ruff, and the Python dependency audit. These checks do not replace browser testing or certify a production deployment.
 
 ## Configuration
 

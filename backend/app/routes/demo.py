@@ -5,9 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
-from app.services.auth_service import create_access_token, create_refresh_token
-from app.services.demo_seeder import seed_demo_event, _DEMO_EMAIL, _DEMO_PASSWORD
 from app.models.models import User
+from app.services.auth_service import create_access_token, create_refresh_token
+from app.services.demo_seeder import _DEMO_EMAIL, _DEMO_PASSWORD, seed_demo_event
 
 log = logging.getLogger(__name__)
 

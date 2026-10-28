@@ -99,6 +99,27 @@ class TestLogin:
         resp = client.get("/api/auth/me")
         assert resp.status_code == 401
 
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            {"sub": "user-1", "type": "refresh"},
+            {"type": "access"},
+            ["not", "an", "object"],
+        ],
+    )
+    def test_get_me_rejects_invalid_access_claims(self, client, monkeypatch, payload):
+        monkeypatch.setattr(
+            "app.services.auth_service.decode_access_token",
+            lambda _token: payload,
+        )
+
+        response = client.get(
+            "/api/auth/me",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+        assert response.status_code == 401
+
     def test_error_response_has_no_stack_trace(self, client):
         """Errors must never expose internal details."""
         resp = client.post("/api/auth/login", json={

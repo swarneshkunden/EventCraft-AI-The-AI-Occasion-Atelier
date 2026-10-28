@@ -30,7 +30,6 @@ def test_ai_cache_expires_entries(monkeypatch):
 
 def test_ai_cache_evicts_least_recently_used_entry(monkeypatch):
     from app.services import ai_service
-    from app.services import ai_service
     monkeypatch.setattr(ai_service.settings, "AI_CACHE_MAX_ENTRIES", 2)
     monkeypatch.setattr(ai_service.settings, "AI_CACHE_MAX_ENTRIES", 2)
 

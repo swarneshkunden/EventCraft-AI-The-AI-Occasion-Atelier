@@ -1,6 +1,6 @@
 """Deterministic plan-health scoring and reviewable crisis proposals."""
 import re
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -708,7 +708,7 @@ def accept_crisis_proposal(
     proposal.added_task_ids = added_ids
     proposal.status = "accepted"
     proposal.selected_option_id = option_id
-    proposal.accepted_at = datetime.now(timezone.utc)
+    proposal.accepted_at = datetime.now(UTC)
     changed_fields = sorted({
         field
         for field, condition in (
@@ -780,7 +780,7 @@ def undo_crisis_proposal(proposal: PlanChangeProposal, db: Session) -> PlanChang
         ).delete(synchronize_session=False)
 
     proposal.status = "undone"
-    proposal.undone_at = datetime.now(timezone.utc)
+    proposal.undone_at = datetime.now(UTC)
     fields = {
         field
         for field, condition in (

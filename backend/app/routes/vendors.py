@@ -1,13 +1,14 @@
 """Vendor routes – CRUD plus AI checklist/questions generation."""
-import json
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
 from app.config.settings import get_settings
 from app.models.models import BudgetCategory, User
+from app.services.ai_service import call_ai, extract_json_from_response, is_ai_fallback
 from app.services.auth_service import get_current_user
 from app.services.event_service import (
     create_vendor,
@@ -17,7 +18,6 @@ from app.services.event_service import (
     set_vendor_ai_data,
     update_vendor,
 )
-from app.services.ai_service import call_ai, extract_json_from_response, is_ai_fallback
 from app.services.prompts import VENDOR_QUESTIONS_SYSTEM, VENDOR_QUESTIONS_USER
 from app.validators.schemas import AIVendorQuestions, VendorCreate, VendorResponse, VendorUpdate
 
@@ -118,9 +118,12 @@ async def generate_questions(
 
     try:
         validated = AIVendorQuestions.model_validate(raw)
-    except Exception as e:
-        log.warning("AI vendor response schema validation failed: %s", type(e).__name__)
-        raise HTTPException(status_code=502, detail="AI response did not match expected format.")
+    except ValidationError as exc:
+        log.warning("AI vendor response schema validation failed: %s", type(exc).__name__)
+        raise HTTPException(
+            status_code=502,
+            detail="AI response did not match expected format.",
+        ) from None
 
     vendor = set_vendor_ai_data(vendor, validated.checklist, validated.questions, db)
     db.commit()

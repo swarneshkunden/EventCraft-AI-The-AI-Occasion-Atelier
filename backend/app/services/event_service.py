@@ -2,30 +2,26 @@
 Event service – CRUD and business logic for events, budget, tasks, vendors, guests.
 All DB writes use parameterized queries through the ORM.
 """
-import json
 import logging
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 from fastapi import HTTPException
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.models.models import (
     BudgetCategory,
     ChatMessage,
     Event,
-    EventType,
     Guest,
     Task,
     TaskStatus,
     Vendor,
-    VendorType,
 )
 from app.validators.schemas import (
     BudgetCategoryCreate,
     BudgetCategoryUpdate,
     EventCreateRequest,
-    EventProfile,
     EventUpdateRequest,
     GuestCreate,
     GuestUpdate,
@@ -40,7 +36,7 @@ log = logging.getLogger(__name__)
 
 # ── Authorization guard ───────────────────────────────────────────────────────
 
-def _assert_owner(event: Optional[Event], user_id: str) -> Event:
+def _assert_owner(event: Event | None, user_id: str) -> Event:
     if not event or event.owner_id != user_id:
         raise HTTPException(status_code=404, detail="Event not found")
     return event
@@ -103,7 +99,7 @@ def delete_event(event_id: str, user_id: str, db: Session) -> None:
 def set_budget_categories(
     event_id: str, user_id: str, categories: list[BudgetCategoryCreate], db: Session
 ) -> list[BudgetCategory]:
-    event = get_event(event_id, user_id, db)
+    get_event(event_id, user_id, db)
     # Delete existing and replace (atomic operation)
     db.query(BudgetCategory).filter(BudgetCategory.event_id == event_id).delete()
     records = []
@@ -210,7 +206,7 @@ def update_task(event_id: str, task_id: str, user_id: str, data: TaskUpdate, db:
     if data.status:
         task.status = data.status
         if data.status == TaskStatus.completed and old_status != TaskStatus.completed:
-            task.completed_at = datetime.now(timezone.utc)
+            task.completed_at = datetime.now(UTC)
         elif data.status != TaskStatus.completed:
             task.completed_at = None
     if data.due_date is not None:
@@ -364,7 +360,7 @@ def bulk_import_guests(
             guest = Guest(event_id=event_id, **schema.model_dump())
             db.add(guest)
             imported += 1
-        except Exception:
+        except ValidationError:
             skipped += 1
     db.flush()
     _sync_guest_count(event_id, db)

@@ -42,13 +42,12 @@ async def parse_guest_csv(upload: UploadFile) -> list[dict]:
     """
     # Validate content type by MIME (not just extension)
     content_type = (upload.content_type or "").lower().split(";")[0].strip()
-    if content_type not in _ALLOWED_MIME:
-        # Be generous – also accept empty/octet-stream but validate content
-        if content_type not in ("application/octet-stream", ""):
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid file type. Upload a CSV file.",
-            )
+    # Accept generic upload types, then validate the content itself.
+    if content_type not in _ALLOWED_MIME and content_type not in ("application/octet-stream", ""):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid file type. Upload a CSV file.",
+        )
 
     raw = await upload.read(settings.UPLOAD_MAX_BYTES + 1)
     if len(raw) > settings.UPLOAD_MAX_BYTES:
@@ -63,7 +62,7 @@ async def parse_guest_csv(upload: UploadFile) -> list[dict]:
     try:
         text = raw.decode("utf-8-sig")  # handle BOM
     except UnicodeDecodeError:
-        raise HTTPException(status_code=400, detail="File must be UTF-8 encoded.")
+        raise HTTPException(status_code=400, detail="File must be UTF-8 encoded.") from None
 
     reader = csv.DictReader(io.StringIO(text))
     if not reader.fieldnames:

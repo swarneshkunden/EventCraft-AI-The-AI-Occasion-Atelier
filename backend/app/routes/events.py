@@ -1,7 +1,7 @@
 """Event CRUD routes."""
 import logging
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db

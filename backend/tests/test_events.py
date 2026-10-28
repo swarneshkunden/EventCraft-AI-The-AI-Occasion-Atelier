@@ -4,8 +4,6 @@ Integration tests for event endpoints, validators, and AI mocking.
 import json
 import unittest.mock as mock
 
-import pytest
-
 
 class TestEventCRUD:
     def test_create_event(self, auth_client):

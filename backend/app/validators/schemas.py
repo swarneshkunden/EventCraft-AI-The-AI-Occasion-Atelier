@@ -1,10 +1,9 @@
 """Pydantic schemas for all API request/response validation."""
 import re
 from datetime import date
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
-
 
 # ── Shared helpers ────────────────────────────────────────────────────────────
 
@@ -91,7 +90,7 @@ class EventProfile(StrictModel):
     occasion: str = Field(max_length=200)
     budget: float = Field(gt=0, le=1_000_000_000, allow_inf_nan=False)
     guest_count: int = Field(ge=1, le=100_000)
-    event_date: Optional[str] = None
+    event_date: str | None = None
     experience_level: str = Field(default="moderate", pattern="^(premium|moderate|simple)$")
     priorities: list[str] = Field(default_factory=list, max_length=10)
     must_haves: list[str] = Field(default_factory=list, max_length=20)
@@ -133,9 +132,9 @@ class EventCreateRequest(StrictModel):
 
 
 class EventUpdateRequest(StrictModel):
-    name: Optional[str] = Field(default=None, min_length=1, max_length=200)
-    event_type: Optional[str] = None
-    profile: Optional[EventProfile] = None
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    event_type: str | None = None
+    profile: EventProfile | None = None
 
     @field_validator("event_type")
     @classmethod
@@ -151,7 +150,7 @@ class EventResponse(_OrmBase):
     event_type: str
     profile: dict
     total_budget: float
-    event_date: Optional[str]
+    event_date: str | None
     guest_count: int
     is_demo: bool
     created_at: Any
@@ -169,9 +168,9 @@ class BudgetCategoryCreate(StrictModel):
 
 
 class BudgetCategoryUpdate(StrictModel):
-    allocated: Optional[float] = Field(default=None, ge=0, le=1_000_000_000, allow_inf_nan=False)
-    spent: Optional[float] = Field(default=None, ge=0, le=1_000_000_000, allow_inf_nan=False)
-    notes: Optional[str] = Field(default=None, max_length=2000)
+    allocated: float | None = Field(default=None, ge=0, le=1_000_000_000, allow_inf_nan=False)
+    spent: float | None = Field(default=None, ge=0, le=1_000_000_000, allow_inf_nan=False)
+    notes: str | None = Field(default=None, max_length=2000)
 
 
 class BudgetCategoryResponse(_OrmBase):
@@ -225,7 +224,7 @@ class TaskCreate(StrictModel):
     title: str = Field(min_length=1, max_length=300)
     description: str = Field(default="", max_length=2000)
     category: str = Field(default="general", max_length=100)
-    due_date: Optional[str] = None
+    due_date: str | None = None
     priority: int = Field(default=5, ge=1, le=10)
     depends_on: list[str] = Field(default_factory=list)
 
@@ -236,9 +235,9 @@ class TaskCreate(StrictModel):
 
 
 class TaskUpdate(StrictModel):
-    status: Optional[str] = None
-    due_date: Optional[str] = None
-    notes: Optional[str] = Field(default=None, max_length=2000)
+    status: str | None = None
+    due_date: str | None = None
+    notes: str | None = Field(default=None, max_length=2000)
 
     @field_validator("status")
     @classmethod
@@ -258,7 +257,7 @@ class TaskResponse(_OrmBase):
     title: str
     description: str
     status: str
-    due_date: Optional[str]
+    due_date: str | None
     depends_on: list
     priority: int
     category: str
@@ -271,8 +270,8 @@ class VendorCreate(StrictModel):
     vendor_type: str
     name: str = Field(min_length=1, max_length=200)
     contact: str = Field(default="", max_length=200)
-    quoted_price: Optional[float] = Field(default=None, ge=0, le=1_000_000_000, allow_inf_nan=False)
-    guests_covered: Optional[int] = Field(default=None, ge=0, le=100_000)
+    quoted_price: float | None = Field(default=None, ge=0, le=1_000_000_000, allow_inf_nan=False)
+    guests_covered: int | None = Field(default=None, ge=0, le=100_000)
     inclusions: str = Field(default="", max_length=2000)
     extra_charges: str = Field(default="", max_length=2000)
     open_questions: str = Field(default="", max_length=2000)
@@ -287,13 +286,13 @@ class VendorCreate(StrictModel):
 
 
 class VendorUpdate(StrictModel):
-    quoted_price: Optional[float] = Field(default=None, ge=0, le=1_000_000_000, allow_inf_nan=False)
-    guests_covered: Optional[int] = Field(default=None, ge=0, le=100_000)
-    inclusions: Optional[str] = Field(default=None, max_length=2000)
-    extra_charges: Optional[str] = Field(default=None, max_length=2000)
-    open_questions: Optional[str] = Field(default=None, max_length=2000)
-    notes: Optional[str] = Field(default=None, max_length=2000)
-    is_selected: Optional[bool] = None
+    quoted_price: float | None = Field(default=None, ge=0, le=1_000_000_000, allow_inf_nan=False)
+    guests_covered: int | None = Field(default=None, ge=0, le=100_000)
+    inclusions: str | None = Field(default=None, max_length=2000)
+    extra_charges: str | None = Field(default=None, max_length=2000)
+    open_questions: str | None = Field(default=None, max_length=2000)
+    notes: str | None = Field(default=None, max_length=2000)
+    is_selected: bool | None = None
 
 
 class VendorResponse(_OrmBase):
@@ -301,8 +300,8 @@ class VendorResponse(_OrmBase):
     vendor_type: str
     name: str
     contact: str
-    quoted_price: Optional[float]
-    guests_covered: Optional[int]
+    quoted_price: float | None
+    guests_covered: int | None
     inclusions: str
     extra_charges: str
     open_questions: str
@@ -338,9 +337,9 @@ class GuestCreate(StrictModel):
 
 
 class GuestUpdate(StrictModel):
-    rsvp_status: Optional[str] = None
-    dietary_needs: Optional[str] = Field(default=None, max_length=200)
-    accessibility_needs: Optional[str] = Field(default=None, max_length=200)
+    rsvp_status: str | None = None
+    dietary_needs: str | None = Field(default=None, max_length=200)
+    accessibility_needs: str | None = Field(default=None, max_length=200)
 
     @field_validator("rsvp_status")
     @classmethod

@@ -2,15 +2,13 @@
 Demo event seeder – creates a sample Wedding event for evaluators.
 Budget: INR 8,00,000 | Guests: 200 | Event: 4 months from today
 """
-import json
 import logging
 from datetime import date, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.models.models import BudgetCategory, ChatMessage, Event, Guest, Task, Vendor
+from app.models.models import BudgetCategory, ChatMessage, Event, Guest, Task, User, Vendor
 from app.services.auth_service import hash_password
-from app.models.models import User
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +25,7 @@ def seed_demo_event(db: Session) -> Event:
     Idempotent: skips if demo event already exists.
     Returns the demo event.
     """
-    existing = db.query(Event).filter(Event.is_demo == True).first()
+    existing = db.query(Event).filter(Event.is_demo.is_(True)).first()
     if existing:
         return existing
 
@@ -99,8 +97,6 @@ def seed_demo_event(db: Session) -> Event:
     db.flush()
 
     # Sample tasks
-    today = date.today()
-
     def days_before(n: int) -> str:
         return (date.fromisoformat(ev_date) - timedelta(days=n)).isoformat()
 

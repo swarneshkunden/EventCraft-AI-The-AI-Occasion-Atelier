@@ -127,6 +127,7 @@ class TestDeploymentHealth:
 class TestRateLimiting:
     def test_auth_rate_limit_window_is_capped_at_five_minutes(self):
         from pydantic import ValidationError
+
         from app.config.settings import Settings
 
         settings = Settings(

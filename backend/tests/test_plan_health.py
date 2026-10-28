@@ -2,9 +2,7 @@
 from datetime import date
 from types import SimpleNamespace
 
-import pytest
-
-from app.models.models import PlanChangeAudit, PlanChangeProposal, Task, Vendor, VendorType
+from app.models.models import PlanChangeAudit, Vendor, VendorType
 from app.services.plan_health_service import calculate_plan_health
 
 

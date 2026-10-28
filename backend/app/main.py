@@ -5,15 +5,14 @@ Wires together all routers, middleware, and static file serving.
 import logging
 from pathlib import Path
 
-from fastapi import FastAPI, Request
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import configure_logging, engine, get_settings
 from app.middleware import (
@@ -48,7 +47,7 @@ app = FastAPI(
     openapi_url="/api/openapi.json" if settings.APP_ENV != "production" else None,
 )
 
-# ── Middleware (order matters – outermost first) ───────────────────────────────
+# ── Middleware (order matters – outermost first) ──────────────────────────────────────────
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(

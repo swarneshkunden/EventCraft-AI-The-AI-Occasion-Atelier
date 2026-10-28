@@ -1,7 +1,9 @@
 """Tests for CSV import security."""
 import io
+
 import pytest
 from fastapi import UploadFile
+
 from app.services.csv_service import parse_guest_csv
 
 
@@ -42,6 +44,7 @@ class TestCsvImport:
     @pytest.mark.asyncio
     async def test_file_too_large_rejected(self, monkeypatch):
         from fastapi import HTTPException
+
         import app.config.settings as settings_module
         monkeypatch.setattr(settings_module.get_settings(), "UPLOAD_MAX_BYTES", 10)
         csv_content = "name\n" + "A" * 20

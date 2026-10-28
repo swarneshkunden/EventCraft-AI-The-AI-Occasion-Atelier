@@ -4,10 +4,12 @@ import logging
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
 from app.models.models import User
+from app.services.ai_service import call_ai, extract_json_from_response, is_ai_fallback
 from app.services.auth_service import get_current_user
 from app.services.event_service import (
     bulk_create_tasks,
@@ -17,7 +19,6 @@ from app.services.event_service import (
     get_tasks,
     update_task,
 )
-from app.services.ai_service import call_ai, extract_json_from_response, is_ai_fallback
 from app.services.prompts import TASK_GENERATION_SYSTEM, TASK_GENERATION_USER
 from app.validators.schemas import AITaskList, TaskCreate, TaskResponse, TaskUpdate
 
@@ -103,9 +104,12 @@ async def generate_tasks(
 
     try:
         validated = AITaskList.model_validate(raw)
-    except Exception as e:
-        log.warning("AI task list schema validation failed: %s", e)
-        raise HTTPException(status_code=502, detail="AI response did not match expected format.")
+    except ValidationError as exc:
+        log.warning("AI task list schema validation failed: %s", type(exc).__name__)
+        raise HTTPException(
+            status_code=502,
+            detail="AI response did not match expected format.",
+        ) from None
 
     tasks = bulk_create_tasks(
         event_id,

@@ -114,7 +114,7 @@ class Settings(BaseSettings):
         secret = self.APP_SECRET_KEY.strip()
         if len(secret) < 32:
             raise ValueError("APP_SECRET_KEY must be at least 32 characters")
-        if self.APP_SECRET_KEY != secret:
+        if secret != self.APP_SECRET_KEY:
             raise ValueError("APP_SECRET_KEY must not contain leading or trailing whitespace")
         for database_url in (self.DATABASE_URL, self.DATABASE_URL_DIRECT):
             if database_url:
@@ -131,9 +131,8 @@ class Settings(BaseSettings):
                     "Production requires a durable PostgreSQL database using the psycopg driver"
                 )
             database_host = urlsplit(self.DATABASE_URL).hostname or ""
-            if database_host.endswith(".neon.tech"):
-                if "pooler" not in database_host:
-                    raise ValueError("Production Neon DATABASE_URL must use the pooled hostname")
+            if database_host.endswith(".neon.tech") and "pooler" not in database_host:
+                raise ValueError("Production Neon DATABASE_URL must use the pooled hostname")
             for origin in self.allowed_origins_list():
                 parsed = urlsplit(origin)
                 if (

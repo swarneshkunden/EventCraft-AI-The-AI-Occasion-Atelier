@@ -1,17 +1,17 @@
 """Safety and row-preservation checks for the opt-in database copy utility."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
-from sqlalchemy import create_engine, insert, select
-
-from app.models import models  # noqa: F401
-from app.config.database import Base
 from scripts.copy_sqlite_to_postgres import (
     _copy_rows,
     _readonly_sqlite_url,
     _utc_values,
     copy_database,
 )
+from sqlalchemy import create_engine, insert, select
+
+from app.config.database import Base
+from app.models import models  # noqa: F401
 
 
 def test_source_url_is_read_only_and_requires_sqlite(tmp_path, monkeypatch):
@@ -38,7 +38,7 @@ def test_utc_values_restores_utc_timezone_for_sqlite_datetimes():
         {"id": "user-id", "created_at": naive_value},
     )
 
-    assert converted["created_at"] == naive_value.replace(tzinfo=timezone.utc)
+    assert converted["created_at"] == naive_value.replace(tzinfo=UTC)
 
 
 def test_copy_rows_preserves_ids_and_refuses_nonempty_target(tmp_path):

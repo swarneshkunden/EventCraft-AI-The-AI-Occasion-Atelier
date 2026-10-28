@@ -27,6 +27,7 @@ else:
 
 from sqlalchemy import event
 from sqlalchemy.pool import StaticPool
+
 from app.config.database import Base, get_db
 from app.main import app
 from app.middleware.rate_limit import get_rate_limit_store

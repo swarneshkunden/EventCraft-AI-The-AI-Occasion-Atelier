@@ -1,6 +1,6 @@
 """Auth routes – signup, login, refresh, logout."""
-import logging
 import asyncio
+import logging
 import secrets
 
 import bcrypt
@@ -17,11 +17,11 @@ from app.services.auth_service import (
     create_refresh_token,
     get_current_user,
     hash_password,
-    rotate_refresh_token,
     revoke_all_user_tokens,
+    rotate_refresh_token,
     verify_password,
 )
-from app.validators.schemas import LoginRequest, SignupRequest, TokenResponse, UserResponse
+from app.validators.schemas import LoginRequest, SignupRequest, UserResponse
 
 log = logging.getLogger(__name__)
 settings = get_settings()
@@ -106,7 +106,7 @@ async def login(
     if delay > 0:
         await asyncio.sleep(delay)
 
-    user = db.query(User).filter(User.email == body.email, User.is_active == True).first()
+    user = db.query(User).filter(User.email == body.email, User.is_active.is_(True)).first()
     password_hash = user.hashed_password if user else _DUMMY_PASSWORD_HASH
     password_matches = verify_password(body.password, password_hash)
     if not user or not password_matches:
@@ -130,7 +130,6 @@ async def refresh_token(
     response: Response,
     db: Session = Depends(get_db),
 ) -> dict:
-    from fastapi import Request
     # Refresh token comes from httpOnly cookie only
     raise HTTPException(status_code=400, detail="Use the cookie-based refresh endpoint")
 

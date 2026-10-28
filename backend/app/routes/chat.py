@@ -6,10 +6,12 @@ import json
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
 from app.models.models import User
+from app.services.ai_service import call_ai, extract_json_from_response, is_ai_fallback
 from app.services.auth_service import get_current_user
 from app.services.event_service import (
     get_budget_categories,
@@ -18,7 +20,6 @@ from app.services.event_service import (
     get_tasks,
     save_chat_message,
 )
-from app.services.ai_service import call_ai, extract_json_from_response, is_ai_fallback
 from app.services.prompts import CHAT_SYSTEM, CHAT_USER
 from app.validators.schemas import AIIdeas, ChatMessageRequest, ChatMessageResponse
 
@@ -92,12 +93,11 @@ async def get_ideas(
     db: Session = Depends(get_db),
 ) -> dict:
     """Generate personalized theme/decor/menu/activity ideas."""
-    from app.services.prompts import IDEAS_SYSTEM, IDEAS_USER
     from app.services.event_service import get_budget_categories
+    from app.services.prompts import IDEAS_SYSTEM, IDEAS_USER
 
     event = get_event(event_id, current_user.id, db)
     categories = get_budget_categories(event_id, current_user.id, db)
-    total_allocated = sum(c.allocated for c in categories)
     total_spent = sum(c.spent for c in categories)
     remaining = event.total_budget - total_spent
 
@@ -117,6 +117,9 @@ async def get_ideas(
         raise HTTPException(status_code=502, detail="AI returned unexpected format. Please retry.")
     try:
         return AIIdeas.model_validate(raw).model_dump()
-    except Exception as e:
-        log.warning("AI ideas schema validation failed: %s", type(e).__name__)
-        raise HTTPException(status_code=502, detail="AI response did not match expected format.")
+    except ValidationError as exc:
+        log.warning("AI ideas schema validation failed: %s", type(exc).__name__)
+        raise HTTPException(
+            status_code=502,
+            detail="AI response did not match expected format.",
+        ) from None

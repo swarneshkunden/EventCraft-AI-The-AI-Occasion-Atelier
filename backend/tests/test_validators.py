@@ -5,9 +5,9 @@ from pydantic import ValidationError
 from app.validators.schemas import (
     AIBudgetSplit,
     AITaskList,
+    EventProfile,
     GuestCreate,
     SignupRequest,
-    EventProfile,
 )
 
 

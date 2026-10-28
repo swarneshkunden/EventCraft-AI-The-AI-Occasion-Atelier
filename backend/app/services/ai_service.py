@@ -9,10 +9,9 @@ import logging
 import time
 from collections import OrderedDict
 from threading import Lock
-from typing import Any, Optional
+from typing import Any
 
 import httpx
-from pydantic import ValidationError
 
 from app.config.settings import get_settings
 
@@ -36,7 +35,7 @@ def _make_cache_key(model_name: str, prompt: str) -> str:
     return hashlib.sha256(combined.encode()).hexdigest()
 
 
-def _get_cached(cache_key: str) -> Optional[str]:
+def _get_cached(cache_key: str) -> str | None:
     now = time.monotonic()
     with _cache_lock:
         entry = _cache.get(cache_key)

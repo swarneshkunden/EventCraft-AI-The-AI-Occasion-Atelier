@@ -1,6 +1,7 @@
 """Tests for Gemini model configuration and safe provider diagnostics."""
 import asyncio
 import logging
+from collections import OrderedDict
 
 import httpx
 import pytest
@@ -92,3 +93,48 @@ def test_gemini_503_falls_back_to_available_flash_lite(monkeypatch):
 
     assert result == "Fallback answer"
     assert requested_models == ["gemini-3.8-flash", "gemini-3.5-flash-lite"]
+
+
+def test_json_extractor_handles_fenced_embedded_array_and_invalid_output():
+    from app.services.ai_service import extract_json_from_response
+
+    assert extract_json_from_response('```json\n{"ok": true}\n```') == {"ok": True}
+    assert extract_json_from_response('Result: {"count": 2} done') == {"count": 2}
+    assert extract_json_from_response("Items: [1, 2, 3]") == [1, 2, 3]
+    assert extract_json_from_response("No structured content") is None
+
+
+def test_successful_ai_response_is_cached(monkeypatch):
+    from app.services import ai_service
+
+    monkeypatch.setattr(ai_service, "_cache", OrderedDict())
+    calls = []
+
+    async def fake_call_gemini(system_prompt, user_prompt):
+        calls.append((system_prompt, user_prompt))
+        return "Generated answer"
+
+    monkeypatch.setattr(ai_service, "_call_gemini", fake_call_gemini)
+
+    assert asyncio.run(ai_service.call_ai("system", "prompt")) == "Generated answer"
+    assert asyncio.run(ai_service.call_ai("system", "prompt")) == "Generated answer"
+    assert calls == [("system", "prompt")]
+
+
+def test_ai_cache_expires_and_evicts_oldest_entry(monkeypatch):
+    from app.services import ai_service
+
+    monkeypatch.setattr(ai_service, "_cache", OrderedDict())
+    monkeypatch.setattr(ai_service.settings, "AI_CACHE_TTL_SECONDS", 10)
+    monkeypatch.setattr(ai_service.settings, "AI_CACHE_MAX_ENTRIES", 2)
+    current_time = [100.0]
+    monkeypatch.setattr(ai_service.time, "monotonic", lambda: current_time[0])
+
+    ai_service._set_cache("first", "one")
+    ai_service._set_cache("second", "two")
+    ai_service._set_cache("third", "three")
+    assert ai_service._get_cached("first") is None
+    assert ai_service._get_cached("second") == "two"
+
+    current_time[0] += 10
+    assert ai_service._get_cached("second") is None

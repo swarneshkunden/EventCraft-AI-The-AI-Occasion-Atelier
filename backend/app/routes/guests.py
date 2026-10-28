@@ -1,7 +1,7 @@
 """Guest routes – CRUD, CSV import, pagination."""
 import logging
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Query, UploadFile
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db

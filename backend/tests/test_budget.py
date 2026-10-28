@@ -1,5 +1,4 @@
 """Unit tests for budget math and scenario logic."""
-import pytest
 
 
 class TestBudgetMath:

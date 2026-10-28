@@ -1,5 +1,4 @@
 """Unit tests for task dependency and timeline logic."""
-import pytest
 from app.models.models import Task, TaskStatus
 from app.services.event_service import compute_task_readiness
 

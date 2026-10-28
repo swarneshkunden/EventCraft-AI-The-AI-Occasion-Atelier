@@ -3,7 +3,7 @@ Security headers middleware.
 Adds CSP, X-Frame-Options, and other hardening headers to every response.
 """
 import uuid
-from typing import Callable
+from collections.abc import Callable
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware

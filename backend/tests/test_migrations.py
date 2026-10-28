@@ -2,9 +2,9 @@
 import os
 from pathlib import Path
 
+import pytest
 from alembic import command
 from alembic.config import Config
-import pytest
 from sqlalchemy import Numeric, create_engine, inspect, text
 from sqlalchemy.dialects.postgresql import JSONB
 

@@ -1,8 +1,8 @@
 """Database setup using SQLAlchemy with SQLite."""
 import logging
 import time
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Generator
 
 from psycopg import OperationalError as PsycopgOperationalError
 from sqlalchemy import create_engine, event

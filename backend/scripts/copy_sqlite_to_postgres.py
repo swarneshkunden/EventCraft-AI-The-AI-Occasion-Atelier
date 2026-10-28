@@ -2,18 +2,17 @@
 import argparse
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import DateTime, Engine, Table, create_engine, func, inspect, select, text
-from sqlalchemy.engine import Connection, URL, make_url
+from sqlalchemy import DateTime, Table, create_engine, func, inspect, select, text
+from sqlalchemy.engine import URL, Connection, make_url
 from sqlalchemy.exc import SQLAlchemyError
 
+from app.config.database import Base
 from app.config.settings import normalize_database_url
 from app.models import models  # noqa: F401
-from app.config.database import Base
-
 
 EXPECTED_ALEMBIC_HEAD = "51d2a6f89c43"
 BATCH_SIZE = 500
@@ -100,7 +99,7 @@ def _utc_values(table: Table, row: Any) -> dict[str, Any]:
             and isinstance(value, datetime)
             and value.tzinfo is None
         ):
-            values[column.name] = value.replace(tzinfo=timezone.utc)
+            values[column.name] = value.replace(tzinfo=UTC)
     return values
 
 
@@ -148,13 +147,12 @@ def copy_database(source_value: str, target_value: str, confirmed_host: str) -> 
         pool_pre_ping=True,
     )
     try:
-        with source_engine.connect() as source_connection:
-            with source_connection.begin():
-                _schema_tables(source_connection, source=True)
-                with target_engine.begin() as target_connection:
-                    _schema_tables(target_connection, source=False)
-                    _lock_target_tables(target_connection)
-                    return _copy_rows(source_connection, target_connection)
+        with source_engine.connect() as source_connection, source_connection.begin():
+            _schema_tables(source_connection, source=True)
+            with target_engine.begin() as target_connection:
+                _schema_tables(target_connection, source=False)
+                _lock_target_tables(target_connection)
+                return _copy_rows(source_connection, target_connection)
     finally:
         source_engine.dispose()
         target_engine.dispose()

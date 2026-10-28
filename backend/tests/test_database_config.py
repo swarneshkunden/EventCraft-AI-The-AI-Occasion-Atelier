@@ -5,8 +5,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import StaleDataError
 
+from app.config import database
 from app.config.settings import Settings, normalize_database_url
-
 
 _SECRET = "database-config-test-secret-with-at-least-32-characters"
 
@@ -101,9 +101,57 @@ def test_database_transaction_rollback_removes_uncommitted_user(db):
     assert db.scalar(select(User).where(User.id == user_id)) is None
 
 
+def test_db_dependency_rolls_back_and_closes_after_request_error(monkeypatch):
+    calls = []
+
+    class FakeSession:
+        def rollback(self):
+            calls.append("rollback")
+
+        def close(self):
+            calls.append("close")
+
+    session = FakeSession()
+    monkeypatch.setattr(database, "SessionLocal", lambda: session)
+    dependency = database.get_db()
+
+    assert next(dependency) is session
+    with pytest.raises(RuntimeError, match="request failed"):
+        dependency.throw(RuntimeError("request failed"))
+
+    assert calls == ["rollback", "close"]
+
+
+def test_db_session_commits_success_and_rolls_back_failure(monkeypatch):
+    calls = []
+
+    class FakeSession:
+        def commit(self):
+            calls.append("commit")
+
+        def rollback(self):
+            calls.append("rollback")
+
+        def close(self):
+            calls.append("close")
+
+    session = FakeSession()
+    monkeypatch.setattr(database, "SessionLocal", lambda: session)
+
+    with database.db_session() as current:
+        assert current is session
+    assert calls == ["commit", "close"]
+
+    calls.clear()
+    with pytest.raises(RuntimeError, match="operation failed"):
+        with database.db_session():
+            raise RuntimeError("operation failed")
+    assert calls == ["rollback", "close"]
+
+
 def test_sqlite_concurrent_event_edit_rejects_stale_write(tmp_path):
-    from app.models.models import Event, User
     from app.config.database import Base
+    from app.models.models import Event, User
 
     engine = create_engine(f"sqlite:///{tmp_path / 'optimistic-lock.db'}")
     Base.metadata.create_all(engine)

@@ -1,14 +1,15 @@
 """Budget routes – category management and AI split generation."""
 import json
 import logging
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
 from app.config.settings import get_settings
 from app.models.models import User
+from app.services.ai_service import call_ai, extract_json_from_response, is_ai_fallback
 from app.services.auth_service import get_current_user
 from app.services.event_service import (
     get_budget_categories,
@@ -16,7 +17,6 @@ from app.services.event_service import (
     set_budget_categories,
     update_budget_category,
 )
-from app.services.ai_service import call_ai, extract_json_from_response, is_ai_fallback
 from app.services.prompts import BUDGET_SPLIT_SYSTEM, BUDGET_SPLIT_USER, REPLAN_SYSTEM, REPLAN_USER
 from app.validators.schemas import (
     AIBudgetSplit,
@@ -96,9 +96,12 @@ async def generate_ai_split(
 
     try:
         validated = AIBudgetSplit.model_validate(raw)
-    except Exception as e:
-        log.warning("AI budget split schema validation failed: %s", e)
-        raise HTTPException(status_code=502, detail="AI response did not match expected format.")
+    except ValidationError as exc:
+        log.warning("AI budget split schema validation failed: %s", type(exc).__name__)
+        raise HTTPException(
+            status_code=502,
+            detail="AI response did not match expected format.",
+        ) from None
 
     # Clamp total to event budget
     total_allocated = sum(c.allocated for c in validated.categories)
@@ -162,6 +165,9 @@ async def run_scenario(
     try:
         validated = AIReplanDiff.model_validate(raw)
         return validated.model_dump()
-    except Exception as e:
-        log.warning("AI replan schema validation failed: %s", e)
-        raise HTTPException(status_code=502, detail="AI response did not match expected format.")
+    except ValidationError as exc:
+        log.warning("AI replan schema validation failed: %s", type(exc).__name__)
+        raise HTTPException(
+            status_code=502,
+            detail="AI response did not match expected format.",
+        ) from None
