@@ -15,7 +15,13 @@ from app.services.event_service import (
     get_guests_paginated,
     update_guest,
 )
-from app.validators.schemas import GuestCreate, GuestListResponse, GuestResponse, GuestUpdate
+from app.validators.schemas import (
+    GuestCreate,
+    GuestImportResponse,
+    GuestListResponse,
+    GuestResponse,
+    GuestUpdate,
+)
 
 log = logging.getLogger(__name__)
 
@@ -72,14 +78,18 @@ async def delete(
     db.commit()
 
 
-@router.post("/import-csv")
+@router.post("/import-csv", response_model=GuestImportResponse)
 async def import_csv(
     event_id: str,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> dict:
+) -> GuestImportResponse:
     rows = await parse_guest_csv(file)
     imported, skipped = bulk_import_guests(event_id, current_user.id, rows, db)
     db.commit()
-    return {"imported": imported, "skipped": skipped, "message": f"Imported {imported} guests."}
+    return GuestImportResponse(
+        imported=imported,
+        skipped=skipped,
+        message=f"Imported {imported} guests.",
+    )

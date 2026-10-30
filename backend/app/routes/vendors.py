@@ -1,16 +1,21 @@
 """Vendor routes – CRUD plus AI checklist/questions generation."""
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
 from app.models.models import BudgetCategory, User
 from app.services.ai_fallbacks import fallback_vendor_questions
-from app.services.ai_generation import generate_with_fallback, mark_source
+from app.services.ai_generation import (
+    AI_SOURCE_RESPONSES,
+    generate_with_fallback,
+    mark_source,
+)
 from app.services.auth_service import get_current_user
 from app.services.event_service import (
     create_vendor,
     delete_vendor,
     get_event,
+    get_vendor,
     get_vendors,
     set_vendor_ai_data,
     update_vendor,
@@ -68,7 +73,11 @@ async def delete(
     db.commit()
 
 
-@router.post("/{vendor_id}/generate-questions", response_model=VendorResponse)
+@router.post(
+    "/{vendor_id}/generate-questions",
+    response_model=VendorResponse,
+    responses=AI_SOURCE_RESPONSES,
+)
 async def generate_questions(
     event_id: str,
     vendor_id: str,
@@ -78,10 +87,7 @@ async def generate_questions(
 ) -> VendorResponse:
     """Generate AI checklist and questions for this vendor type."""
     event = get_event(event_id, current_user.id, db)
-    vendors = get_vendors(event_id, current_user.id, db)
-    vendor = next((v for v in vendors if v.id == vendor_id), None)
-    if not vendor:
-        raise HTTPException(status_code=404, detail="Vendor not found")
+    vendor = get_vendor(event_id, vendor_id, current_user.id, db)
 
     # Find budget for this vendor type
     budget_for_type = (

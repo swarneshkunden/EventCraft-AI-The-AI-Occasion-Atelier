@@ -8,7 +8,11 @@ from sqlalchemy.orm import Session
 from app.config.database import get_db
 from app.models.models import User
 from app.services.ai_fallbacks import fallback_task_list
-from app.services.ai_generation import generate_with_fallback, mark_source
+from app.services.ai_generation import (
+    AI_SOURCE_RESPONSES,
+    generate_with_fallback,
+    mark_source,
+)
 from app.services.auth_service import get_current_user
 from app.services.event_service import (
     bulk_create_tasks,
@@ -19,29 +23,40 @@ from app.services.event_service import (
     update_task,
 )
 from app.services.prompts import TASK_GENERATION_SYSTEM, TASK_GENERATION_USER
-from app.validators.schemas import AITaskList, TaskCreate, TaskResponse, TaskUpdate
+from app.validators.schemas import (
+    AITaskList,
+    TaskCreate,
+    TaskListResponse,
+    TaskReadinessResponse,
+    TaskResponse,
+    TaskUpdate,
+)
 
 router = APIRouter(prefix="/api/events/{event_id}/tasks", tags=["tasks"])
 
 
-@router.get("")
+def _task_list_payload(readiness: list[dict]) -> TaskListResponse:
+    """Attach readiness state to each task in a single typed envelope."""
+    return TaskListResponse(
+        tasks=[
+            TaskReadinessResponse(
+                **TaskResponse.model_validate(item["task"]).model_dump(),
+                is_ready=item["is_ready"],
+                blocked_by=item["blocked_by"],
+            )
+            for item in readiness
+        ]
+    )
+
+
+@router.get("", response_model=TaskListResponse)
 async def get_task_list(
     event_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> dict:
+) -> TaskListResponse:
     tasks = get_tasks(event_id, current_user.id, db)
-    readiness = compute_task_readiness(tasks)
-    return {
-        "tasks": [
-            {
-                **TaskResponse.model_validate(item["task"]).model_dump(),
-                "is_ready": item["is_ready"],
-                "blocked_by": item["blocked_by"],
-            }
-            for item in readiness
-        ]
-    }
+    return _task_list_payload(compute_task_readiness(tasks))
 
 
 @router.post("", status_code=201, response_model=TaskResponse)
@@ -71,13 +86,17 @@ async def update_task_status(
     return task
 
 
-@router.post("/generate")
+@router.post(
+    "/generate",
+    response_model=TaskListResponse,
+    responses=AI_SOURCE_RESPONSES,
+)
 async def generate_tasks(
     event_id: str,
     response: Response,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> dict:
+) -> TaskListResponse:
     """Generate a prioritized task list from the event profile via AI."""
     event = get_event(event_id, current_user.id, db)
 
@@ -108,15 +127,4 @@ async def generate_tasks(
         db,
     )
     db.commit()
-
-    readiness = compute_task_readiness(tasks)
-    return {
-        "tasks": [
-            {
-                **TaskResponse.model_validate(item["task"]).model_dump(),
-                "is_ready": item["is_ready"],
-                "blocked_by": item["blocked_by"],
-            }
-            for item in readiness
-        ]
-    }
+    return _task_list_payload(compute_task_readiness(tasks))

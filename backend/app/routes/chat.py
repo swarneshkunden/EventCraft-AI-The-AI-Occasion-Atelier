@@ -7,7 +7,11 @@ from sqlalchemy.orm import Session
 from app.config.database import get_db
 from app.models.models import User
 from app.services.ai_fallbacks import fallback_ideas
-from app.services.ai_generation import generate_with_fallback, mark_source
+from app.services.ai_generation import (
+    AI_SOURCE_RESPONSES,
+    generate_with_fallback,
+    mark_source,
+)
 from app.services.ai_service import call_ai
 from app.services.auth_service import get_current_user
 from app.services.event_service import (
@@ -75,7 +79,7 @@ async def send_message(
     return assistant_msg
 
 
-@router.get("/ideas")
+@router.get("/ideas", response_model=AIIdeas, responses=AI_SOURCE_RESPONSES)
 async def get_ideas(
     event_id: str,
     response: Response,

@@ -2,8 +2,7 @@
 from datetime import date, timedelta
 from typing import Any
 
-from fastapi import HTTPException
-
+from app.errors import InvalidRequestError
 from app.models.models import BudgetCategory, Event, Task, TaskStatus, Vendor
 from app.services.plan_utils import enum_value, parse_iso_date
 from app.validators.schemas import CrisisIntent
@@ -145,14 +144,14 @@ def _date_advanced_options(
     old_date = parse_iso_date(event.event_date)
 
     if not old_date or not intent.days_advanced:
-        raise HTTPException(status_code=400, detail="A valid event date is required for this change.")
+        raise InvalidRequestError("A valid event date is required for this change.")
 
     new_date = old_date - timedelta(days=intent.days_advanced)
 
     if new_date <= today:
-        raise HTTPException(
-            status_code=400,
-            detail="That change would move the event to today or earlier. Review the date and try again.",
+        raise InvalidRequestError(
+            "That change would move the event to today or earlier. "
+            "Review the date and try again."
         )
 
     shifts = []

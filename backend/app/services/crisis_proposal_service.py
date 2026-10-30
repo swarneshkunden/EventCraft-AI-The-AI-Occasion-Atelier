@@ -1,9 +1,9 @@
 """Persist, accept, undo, and decline crisis proposals."""
 from datetime import UTC, datetime
 
-from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.errors import ConflictError, InvalidRequestError, NotFoundError
 from app.models.models import (
     BudgetCategory,
     Event,
@@ -91,19 +91,18 @@ def accept_crisis_proposal(
     db: Session,
 ) -> PlanChangeProposal:
     if proposal.status != "pending":
-        raise HTTPException(status_code=409, detail="This proposal is no longer available.")
+        raise ConflictError("This proposal is no longer available.")
     event = db.query(Event).filter(Event.id == proposal.event_id).first()
     if not event:
-        raise HTTPException(status_code=404, detail="Event not found.")
+        raise NotFoundError("Event not found.")
     categories, tasks, vendors = _event_records(event.id, db)
     if capture_event_state(event, categories, tasks, vendors) != proposal.baseline:
-        raise HTTPException(
-            status_code=409,
-            detail="The plan changed after this proposal was created. Generate a fresh proposal.",
+        raise ConflictError(
+            "The plan changed after this proposal was created. Generate a fresh proposal."
         )
     selected = next((item for item in proposal.options if item["id"] == option_id), None)
     if not selected:
-        raise HTTPException(status_code=400, detail="Select one of the available options.")
+        raise InvalidRequestError("Select one of the available options.")
     changes = selected["changes"]
 
     if changes.get("event_date") is not None:
@@ -170,15 +169,15 @@ def accept_crisis_proposal(
 
 def undo_crisis_proposal(proposal: PlanChangeProposal, db: Session) -> PlanChangeProposal:
     if proposal.status != "accepted" or not proposal.after_state:
-        raise HTTPException(status_code=409, detail="Only an accepted proposal can be undone.")
+        raise ConflictError("Only an accepted proposal can be undone.")
     event = db.query(Event).filter(Event.id == proposal.event_id).first()
     if not event:
-        raise HTTPException(status_code=404, detail="Event not found.")
+        raise NotFoundError("Event not found.")
     categories, tasks, vendors = _event_records(event.id, db)
     if capture_event_state(event, categories, tasks, vendors) != proposal.after_state:
-        raise HTTPException(
-            status_code=409,
-            detail="The plan changed after this proposal was accepted. Undo would overwrite newer work.",
+        raise ConflictError(
+            "The plan changed after this proposal was accepted. "
+            "Undo would overwrite newer work."
         )
 
     baseline = proposal.baseline
@@ -241,6 +240,6 @@ def undo_crisis_proposal(proposal: PlanChangeProposal, db: Session) -> PlanChang
 
 def decline_crisis_proposal(proposal: PlanChangeProposal) -> PlanChangeProposal:
     if proposal.status != "pending":
-        raise HTTPException(status_code=409, detail="This proposal is no longer available.")
+        raise ConflictError("This proposal is no longer available.")
     proposal.status = "declined"
     return proposal

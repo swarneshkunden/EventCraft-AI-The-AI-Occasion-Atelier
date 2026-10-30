@@ -21,7 +21,13 @@ from app.services.auth_service import (
     rotate_refresh_token,
     verify_password,
 )
-from app.validators.schemas import LoginRequest, SignupRequest, UserResponse
+from app.validators.schemas import (
+    LoginRequest,
+    LoginResponse,
+    MessageResponse,
+    SignupRequest,
+    UserResponse,
+)
 
 log = logging.getLogger(__name__)
 settings = get_settings()
@@ -52,7 +58,7 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
     )
 
 
-@router.post("/signup", status_code=202)
+@router.post("/signup", status_code=202, response_model=MessageResponse)
 async def signup(
     body: SignupRequest,
     db: Session = Depends(get_db),
@@ -76,7 +82,7 @@ async def signup(
     }
 
 
-@router.post("/login")
+@router.post("/login", response_model=LoginResponse)
 async def login(
     body: LoginRequest,
     request: Request,
@@ -125,7 +131,7 @@ async def login(
     return {"message": "Logged in", "display_name": user.display_name}
 
 
-@router.post("/refresh")
+@router.post("/refresh", response_model=MessageResponse)
 async def refresh_token(
     response: Response,
     db: Session = Depends(get_db),
@@ -134,7 +140,7 @@ async def refresh_token(
     raise HTTPException(status_code=400, detail="Use the cookie-based refresh endpoint")
 
 
-@router.post("/refresh-cookie")
+@router.post("/refresh-cookie", response_model=MessageResponse)
 async def refresh_cookie(
     request: Request,
     response: Response,
@@ -152,7 +158,7 @@ async def refresh_cookie(
     return {"message": "Token refreshed"}
 
 
-@router.post("/logout")
+@router.post("/logout", response_model=MessageResponse)
 async def logout(
     response: Response,
     current_user: User = Depends(get_current_user),

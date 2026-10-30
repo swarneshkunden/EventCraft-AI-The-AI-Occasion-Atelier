@@ -1,13 +1,19 @@
 """Budget routes – category management and AI split generation."""
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
+from app.errors import InvalidRequestError
 from app.models.models import User
 from app.services.ai_fallbacks import fallback_budget_split
-from app.services.ai_generation import generate_model, generate_with_fallback, mark_source
+from app.services.ai_generation import (
+    AI_SOURCE_RESPONSES,
+    generate_model,
+    generate_with_fallback,
+    mark_source,
+)
 from app.services.auth_service import get_current_user
 from app.services.event_service import (
     get_budget_categories,
@@ -46,7 +52,7 @@ async def set_categories(
     db: Session = Depends(get_db),
 ) -> list:
     if len(body) > 20:
-        raise HTTPException(status_code=400, detail="Too many categories (max 20)")
+        raise InvalidRequestError("Too many categories (max 20)")
     categories = set_budget_categories(event_id, current_user.id, body, db)
     db.commit()
     return categories
@@ -66,7 +72,11 @@ async def update_category(
     return cat
 
 
-@router.post("/ai-split", response_model=list[BudgetCategoryResponse])
+@router.post(
+    "/ai-split",
+    response_model=list[BudgetCategoryResponse],
+    responses=AI_SOURCE_RESPONSES,
+)
 async def generate_ai_split(
     event_id: str,
     response: Response,
@@ -108,7 +118,7 @@ async def generate_ai_split(
     return categories
 
 
-@router.post("/scenario", response_model=dict)
+@router.post("/scenario", response_model=AIReplanDiff)
 async def run_scenario(
     event_id: str,
     body: ScenarioRequest,

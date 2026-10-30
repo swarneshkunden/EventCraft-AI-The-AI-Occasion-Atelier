@@ -1,13 +1,15 @@
 """Demo route – load pre-seeded demo event for evaluators."""
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
+from app.errors import AppError
 from app.models.models import User
 from app.services.auth_service import create_access_token, create_refresh_token
 from app.services.demo_seeder import _DEMO_EMAIL, _DEMO_PASSWORD, seed_demo_event
+from app.validators.schemas import DemoCredentials, DemoLoadResponse
 
 log = logging.getLogger(__name__)
 
@@ -21,11 +23,11 @@ _COOKIE_KWARGS = {
 }
 
 
-@router.post("/load")
+@router.post("/load", response_model=DemoLoadResponse)
 async def load_demo(
     response: Response,
     db: Session = Depends(get_db),
-) -> dict:
+) -> DemoLoadResponse:
     """
     One-click demo: seeds the demo event and logs the caller in as the demo user.
     Returns the event_id so the frontend can navigate directly to it.
@@ -37,7 +39,7 @@ async def load_demo(
     event = seed_demo_event(db)
     user = db.query(User).filter(User.email == _DEMO_EMAIL).first()
     if not user:
-        raise HTTPException(status_code=500, detail="Demo user not found after seeding")
+        raise AppError("Demo user not found after seeding")
 
     access_token = create_access_token(user.id)
     refresh_token = create_refresh_token(user.id, db)
@@ -48,12 +50,15 @@ async def load_demo(
     response.set_cookie("refresh_token", refresh_token,
                         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400, **cookie_kwargs)
 
-    return {
-        "event_id": event.id,
-        "message": "Demo loaded. Explore the sample wedding event!",
-        "demo_credentials": {
-            "email": _DEMO_EMAIL,
-            "password": _DEMO_PASSWORD,
-            "note": "These credentials are only for the demo. Real users should create their own account.",
-        },
-    }
+    return DemoLoadResponse(
+        event_id=event.id,
+        message="Demo loaded. Explore the sample wedding event!",
+        demo_credentials=DemoCredentials(
+            email=_DEMO_EMAIL,
+            password=_DEMO_PASSWORD,
+            note=(
+                "These credentials are only for the demo. "
+                "Real users should create their own account."
+            ),
+        ),
+    )

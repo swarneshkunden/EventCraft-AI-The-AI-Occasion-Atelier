@@ -17,6 +17,20 @@ log = logging.getLogger(__name__)
 
 ModelT = TypeVar("ModelT", bound=BaseModel)
 
+AI_SOURCE_RESPONSES = {
+    200: {
+        "headers": {
+            "X-AI-Source": {
+                "description": (
+                    "Whether the payload came from the AI provider or from a "
+                    "deterministic fallback used during an outage."
+                ),
+                "schema": {"type": "string", "enum": ["ai", "fallback"]},
+            }
+        }
+    }
+}
+
 
 async def generate_model(
     system_prompt: str,

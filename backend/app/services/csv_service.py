@@ -11,9 +11,10 @@ import io
 import logging
 import re
 
-from fastapi import HTTPException, UploadFile
+from fastapi import UploadFile
 
 from app.config.settings import get_settings
+from app.errors import InvalidRequestError
 
 log = logging.getLogger(__name__)
 settings = get_settings()
@@ -38,41 +39,35 @@ async def parse_guest_csv(upload: UploadFile) -> list[dict]:
     """
     Parse and validate a guest CSV file.
     Returns a list of row dicts ready for bulk_import_guests.
-    Raises HTTPException on any validation failure.
+    Raises InvalidRequestError on any validation failure.
     """
     # Validate content type by MIME (not just extension)
     content_type = (upload.content_type or "").lower().split(";")[0].strip()
     # Accept generic upload types, then validate the content itself.
     if content_type not in _ALLOWED_MIME and content_type not in ("application/octet-stream", ""):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid file type. Upload a CSV file.",
-        )
+        raise InvalidRequestError("Invalid file type. Upload a CSV file.")
 
     raw = await upload.read(settings.UPLOAD_MAX_BYTES + 1)
     if len(raw) > settings.UPLOAD_MAX_BYTES:
-        raise HTTPException(
-            status_code=400,
-            detail=f"File too large. Maximum size is {settings.UPLOAD_MAX_BYTES // 1024} KB.",
+        raise InvalidRequestError(
+            f"File too large. Maximum size is {settings.UPLOAD_MAX_BYTES // 1024} KB."
         )
 
     if b"\x00" in raw:
-        raise HTTPException(status_code=400, detail="Invalid file content.")
+        raise InvalidRequestError("Invalid file content.")
 
     try:
         text = raw.decode("utf-8-sig")  # handle BOM
     except UnicodeDecodeError:
-        raise HTTPException(status_code=400, detail="File must be UTF-8 encoded.") from None
+        raise InvalidRequestError("File must be UTF-8 encoded.") from None
 
     reader = csv.DictReader(io.StringIO(text))
     if not reader.fieldnames:
-        raise HTTPException(status_code=400, detail="CSV has no headers.")
+        raise InvalidRequestError("CSV has no headers.")
 
     headers = {h.strip().lower() for h in reader.fieldnames}
     if not _REQUIRED_HEADERS.issubset(headers):
-        raise HTTPException(
-            status_code=400, detail="CSV must include at least a 'name' column."
-        )
+        raise InvalidRequestError("CSV must include at least a 'name' column.")
 
     unknown_headers = headers - _ALLOWED_HEADERS
     if unknown_headers:
@@ -81,10 +76,7 @@ async def parse_guest_csv(upload: UploadFile) -> list[dict]:
     rows = []
     for i, row in enumerate(reader, start=2):  # start=2 (row 1 is header)
         if i > settings.UPLOAD_MAX_ROWS + 1:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Too many rows. Maximum is {settings.UPLOAD_MAX_ROWS}.",
-            )
+            raise InvalidRequestError(f"Too many rows. Maximum is {settings.UPLOAD_MAX_ROWS}.")
         cleaned = {
             k.strip().lower(): _sanitize_cell(v or "")
             for k, v in row.items()
@@ -96,6 +88,6 @@ async def parse_guest_csv(upload: UploadFile) -> list[dict]:
         rows.append(cleaned)
 
     if not rows:
-        raise HTTPException(status_code=400, detail="CSV contains no valid rows.")
+        raise InvalidRequestError("CSV contains no valid rows.")
 
     return rows

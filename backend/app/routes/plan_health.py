@@ -1,10 +1,11 @@
 """Plan-health scoring and user-approved crisis changes."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
 from app.config.settings import get_settings
+from app.errors import NotFoundError
 from app.models.models import (
     BudgetCategory,
     Event,
@@ -27,7 +28,12 @@ from app.services.plan_health_service import calculate_plan_health
 from app.services.prompts import CRISIS_INTENT_SYSTEM, CRISIS_INTENT_USER
 from app.validators.schemas import (
     AcceptCrisisProposalRequest,
+    CrisisAcceptResponse,
+    CrisisDeclineResponse,
+    CrisisProposalResponse,
     CrisisRequest,
+    CrisisUndoResponse,
+    PlanHealthResponse,
 )
 
 settings = get_settings()
@@ -51,31 +57,33 @@ def _event_data(
     return event, categories, tasks, vendors
 
 
-@router.get("")
+@router.get("", response_model=PlanHealthResponse)
 async def get_plan_health(
     event_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> dict:
+) -> PlanHealthResponse:
     """Return the event's explainable planning-health assessment."""
     event, categories, tasks, vendors = _event_data(event_id, current_user.id, db)
-    return calculate_plan_health(
-        event.total_budget,
-        event.guest_count,
-        event.event_date,
-        categories,
-        tasks,
-        vendors,
+    return PlanHealthResponse.model_validate(
+        calculate_plan_health(
+            event.total_budget,
+            event.guest_count,
+            event.event_date,
+            categories,
+            tasks,
+            vendors,
+        )
     )
 
 
-@router.post("/crisis", status_code=201)
+@router.post("/crisis", status_code=201, response_model=CrisisProposalResponse)
 async def propose_crisis_response(
     event_id: str,
     body: CrisisRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> dict:
+) -> CrisisProposalResponse:
     """Create reviewable response options for a described disruption."""
     event = get_event(event_id, current_user.id, db)
     intent, ai_used = await resolve_crisis_intent(
@@ -97,16 +105,16 @@ async def propose_crisis_response(
         db,
     )
     db.commit()
-    return {
-        "proposal_id": proposal.id,
-        "status": proposal.status,
-        "interpretation": (
+    return CrisisProposalResponse(
+        proposal_id=proposal.id,
+        status=proposal.status,
+        interpretation=(
             f"AI classified this as {intent.kind.replace('_', ' ')}."
             if ai_used
             else f"Using a deterministic {intent.kind.replace('_', ' ')} response."
         ),
-        "ai_used": ai_used,
-        "options": [
+        ai_used=ai_used,
+        options=[
             {
                 "id": option["id"],
                 "label": option["label"],
@@ -115,57 +123,57 @@ async def propose_crisis_response(
             }
             for option in proposal.options
         ],
-    }
+    )
 
 
-@router.post("/proposals/{proposal_id}/accept")
+@router.post("/proposals/{proposal_id}/accept", response_model=CrisisAcceptResponse)
 async def accept_proposal(
     event_id: str,
     proposal_id: str,
     body: AcceptCrisisProposalRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> dict:
+) -> CrisisAcceptResponse:
     """Accept an event owner-selected crisis proposal option."""
     get_event(event_id, current_user.id, db)
     proposal = _get_owned_proposal(event_id, proposal_id, current_user.id, db)
     accept_crisis_proposal(proposal, body.option_id, db)
     db.commit()
-    return {
-        "status": proposal.status,
-        "selected_option_id": proposal.selected_option_id,
-        "undo_available": True,
-    }
+    return CrisisAcceptResponse(
+        status=proposal.status,
+        selected_option_id=proposal.selected_option_id,
+        undo_available=True,
+    )
 
 
-@router.post("/proposals/{proposal_id}/undo")
+@router.post("/proposals/{proposal_id}/undo", response_model=CrisisUndoResponse)
 async def undo_proposal(
     event_id: str,
     proposal_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> dict:
+) -> CrisisUndoResponse:
     """Undo an accepted crisis proposal if the event has not since changed."""
     get_event(event_id, current_user.id, db)
     proposal = _get_owned_proposal(event_id, proposal_id, current_user.id, db)
     undo_crisis_proposal(proposal, db)
     db.commit()
-    return {"status": proposal.status, "undo_available": False}
+    return CrisisUndoResponse(status=proposal.status, undo_available=False)
 
 
-@router.post("/proposals/{proposal_id}/decline")
+@router.post("/proposals/{proposal_id}/decline", response_model=CrisisDeclineResponse)
 async def decline_proposal(
     event_id: str,
     proposal_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> dict:
+) -> CrisisDeclineResponse:
     """Decline a crisis proposal without changing the event plan."""
     get_event(event_id, current_user.id, db)
     proposal = _get_owned_proposal(event_id, proposal_id, current_user.id, db)
     decline_crisis_proposal(proposal)
     db.commit()
-    return {"status": proposal.status}
+    return CrisisDeclineResponse(status=proposal.status)
 
 
 def _get_owned_proposal(
@@ -181,5 +189,5 @@ def _get_owned_proposal(
         PlanChangeProposal.owner_id == owner_id,
     ).first()
     if proposal is None:
-        raise HTTPException(status_code=404, detail="Proposal not found.")
+        raise NotFoundError("Proposal not found.")
     return proposal

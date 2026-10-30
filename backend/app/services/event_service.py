@@ -4,11 +4,12 @@ All DB writes use parameterized queries through the ORM.
 """
 import logging
 from datetime import UTC, datetime
+from typing import TypeVar
 
-from fastapi import HTTPException
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
+from app.errors import NotFoundError
 from app.models.models import (
     BudgetCategory,
     ChatMessage,
@@ -33,13 +34,31 @@ from app.validators.schemas import (
 
 log = logging.getLogger(__name__)
 
+RecordT = TypeVar("RecordT")
+
 
 # ── Authorization guard ───────────────────────────────────────────────────────
 
 def _assert_owner(event: Event | None, user_id: str) -> Event:
     if not event or event.owner_id != user_id:
-        raise HTTPException(status_code=404, detail="Event not found")
+        raise NotFoundError("Event not found")
     return event
+
+
+def _get_owned(
+    db: Session,
+    model: type[RecordT],
+    resource_id: str,
+    event_id: str,
+    label: str,
+) -> RecordT:
+    """Fetch a record scoped to its event, or raise a consistent 404."""
+    record = db.query(model).filter(
+        model.id == resource_id, model.event_id == event_id
+    ).first()
+    if not record:
+        raise NotFoundError(f"{label} not found")
+    return record
 
 
 # ── Events ────────────────────────────────────────────────────────────────────
@@ -132,11 +151,7 @@ def update_budget_category(
     event_id: str, cat_id: str, user_id: str, data: BudgetCategoryUpdate, db: Session
 ) -> BudgetCategory:
     get_event(event_id, user_id, db)
-    cat = db.query(BudgetCategory).filter(
-        BudgetCategory.id == cat_id, BudgetCategory.event_id == event_id
-    ).first()
-    if not cat:
-        raise HTTPException(status_code=404, detail="Category not found")
+    cat = _get_owned(db, BudgetCategory, cat_id, event_id, "Category")
     if data.allocated is not None:
         cat.allocated = data.allocated
     if data.spent is not None:
@@ -198,9 +213,7 @@ def get_tasks(event_id: str, user_id: str, db: Session) -> list[Task]:
 
 def update_task(event_id: str, task_id: str, user_id: str, data: TaskUpdate, db: Session) -> Task:
     get_event(event_id, user_id, db)
-    task = db.query(Task).filter(Task.id == task_id, Task.event_id == event_id).first()
-    if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+    task = _get_owned(db, Task, task_id, event_id, "Task")
 
     old_status = task.status
     if data.status:
@@ -275,24 +288,21 @@ def update_vendor(
     event_id: str, vendor_id: str, user_id: str, data: VendorUpdate, db: Session
 ) -> Vendor:
     get_event(event_id, user_id, db)
-    vendor = db.query(Vendor).filter(
-        Vendor.id == vendor_id, Vendor.event_id == event_id
-    ).first()
-    if not vendor:
-        raise HTTPException(status_code=404, detail="Vendor not found")
+    vendor = _get_owned(db, Vendor, vendor_id, event_id, "Vendor")
     for field, value in data.model_dump(exclude_none=True).items():
         setattr(vendor, field, value)
     db.flush()
     return vendor
 
 
+def get_vendor(event_id: str, vendor_id: str, user_id: str, db: Session) -> Vendor:
+    get_event(event_id, user_id, db)
+    return _get_owned(db, Vendor, vendor_id, event_id, "Vendor")
+
+
 def delete_vendor(event_id: str, vendor_id: str, user_id: str, db: Session) -> None:
     get_event(event_id, user_id, db)
-    vendor = db.query(Vendor).filter(
-        Vendor.id == vendor_id, Vendor.event_id == event_id
-    ).first()
-    if not vendor:
-        raise HTTPException(status_code=404, detail="Vendor not found")
+    vendor = _get_owned(db, Vendor, vendor_id, event_id, "Vendor")
     db.delete(vendor)
 
 
@@ -329,9 +339,7 @@ def update_guest(
     event_id: str, guest_id: str, user_id: str, data: GuestUpdate, db: Session
 ) -> Guest:
     get_event(event_id, user_id, db)
-    guest = db.query(Guest).filter(Guest.id == guest_id, Guest.event_id == event_id).first()
-    if not guest:
-        raise HTTPException(status_code=404, detail="Guest not found")
+    guest = _get_owned(db, Guest, guest_id, event_id, "Guest")
     for field, value in data.model_dump(exclude_none=True).items():
         setattr(guest, field, value)
     db.flush()
@@ -340,9 +348,7 @@ def update_guest(
 
 def delete_guest(event_id: str, guest_id: str, user_id: str, db: Session) -> None:
     get_event(event_id, user_id, db)
-    guest = db.query(Guest).filter(Guest.id == guest_id, Guest.event_id == event_id).first()
-    if not guest:
-        raise HTTPException(status_code=404, detail="Guest not found")
+    guest = _get_owned(db, Guest, guest_id, event_id, "Guest")
     db.delete(guest)
     db.flush()
     _sync_guest_count(event_id, db)

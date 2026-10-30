@@ -470,3 +470,83 @@ class AIIdeas(StrictModel):
     decor: list[AIIdea] = Field(max_length=10)
     menu: list[AIIdea] = Field(max_length=10)
     activities: list[AIIdea] = Field(max_length=10)
+
+
+# ── Route response envelopes ──────────────────────────────────────────────────
+
+class MessageResponse(StrictModel):
+    message: str
+
+
+class LoginResponse(MessageResponse):
+    display_name: str
+
+
+class DemoCredentials(StrictModel):
+    email: str
+    password: str
+    note: str
+
+
+class DemoLoadResponse(MessageResponse):
+    event_id: str
+    demo_credentials: DemoCredentials
+
+
+class TaskReadinessResponse(TaskResponse):
+    is_ready: bool
+    blocked_by: list[str]
+
+
+class TaskListResponse(StrictModel):
+    tasks: list[TaskReadinessResponse]
+
+
+class GuestImportResponse(MessageResponse):
+    imported: int
+    skipped: int
+
+
+class PlanHealthDeductionResponse(StrictModel):
+    key: str
+    points: int
+    reason: str
+    next_step: str
+
+
+class PlanHealthResponse(StrictModel):
+    score: int
+    label: str
+    days_until_event: int | None
+    deductions: list[PlanHealthDeductionResponse]
+    summary: str
+
+
+class CrisisOptionResponse(StrictModel):
+    id: str
+    label: str
+    tradeoff: str
+    diff: dict[str, Any]
+
+
+class CrisisProposalResponse(StrictModel):
+    proposal_id: str
+    status: str
+    interpretation: str
+    ai_used: bool
+    options: list[CrisisOptionResponse]
+
+
+class CrisisAcceptResponse(StrictModel):
+    status: str
+    selected_option_id: str | None
+    undo_available: bool
+
+
+class CrisisUndoResponse(StrictModel):
+    status: str
+    undo_available: bool
+
+
+class CrisisDeclineResponse(StrictModel):
+    status: str
