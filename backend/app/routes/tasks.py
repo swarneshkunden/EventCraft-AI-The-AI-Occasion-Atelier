@@ -1,15 +1,13 @@
 """Task routes – list, update, generate via AI."""
 import json
-import logging
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import ValidationError
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
 from app.models.models import User
-from app.services.ai_service import call_ai, extract_json_from_response, is_ai_fallback
+from app.services.ai_generation import generate_model
 from app.services.auth_service import get_current_user
 from app.services.event_service import (
     bulk_create_tasks,
@@ -21,8 +19,6 @@ from app.services.event_service import (
 )
 from app.services.prompts import TASK_GENERATION_SYSTEM, TASK_GENERATION_USER
 from app.validators.schemas import AITaskList, TaskCreate, TaskResponse, TaskUpdate
-
-log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/events/{event_id}/tasks", tags=["tasks"])
 
@@ -93,23 +89,13 @@ async def generate_tasks(
         today=date.today().isoformat(),
     )
 
-    ai_text = await call_ai(TASK_GENERATION_SYSTEM, user_prompt, use_cache=True)
-
-    if is_ai_fallback(ai_text):
-        raise HTTPException(status_code=503, detail=ai_text)
-
-    raw = extract_json_from_response(ai_text)
-    if not raw:
-        raise HTTPException(status_code=502, detail="AI returned unexpected format. Please retry.")
-
-    try:
-        validated = AITaskList.model_validate(raw)
-    except ValidationError as exc:
-        log.warning("AI task list schema validation failed: %s", type(exc).__name__)
-        raise HTTPException(
-            status_code=502,
-            detail="AI response did not match expected format.",
-        ) from None
+    validated = await generate_model(
+        TASK_GENERATION_SYSTEM,
+        user_prompt,
+        AITaskList,
+        use_cache=True,
+        label="Task generation",
+    )
 
     tasks = bulk_create_tasks(
         event_id,

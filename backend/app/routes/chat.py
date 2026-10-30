@@ -1,17 +1,13 @@
-"""
-Chat assistant route – context-aware AI chat for a specific event.
-AI responses with structured JSON actions are validated before saving.
-"""
+"""Chat assistant route – context-aware AI chat for a specific event."""
 import json
-import logging
 
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import ValidationError
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
 from app.models.models import User
-from app.services.ai_service import call_ai, extract_json_from_response, is_ai_fallback
+from app.services.ai_generation import generate_model
+from app.services.ai_service import call_ai
 from app.services.auth_service import get_current_user
 from app.services.event_service import (
     get_budget_categories,
@@ -20,10 +16,8 @@ from app.services.event_service import (
     get_tasks,
     save_chat_message,
 )
-from app.services.prompts import CHAT_SYSTEM, CHAT_USER
+from app.services.prompts import CHAT_SYSTEM, CHAT_USER, IDEAS_SYSTEM, IDEAS_USER
 from app.validators.schemas import AIIdeas, ChatMessageRequest, ChatMessageResponse
-
-log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/events/{event_id}/chat", tags=["chat"])
 
@@ -73,13 +67,7 @@ async def send_message(
 
     ai_text = await call_ai(CHAT_SYSTEM, user_prompt, use_cache=False)
 
-    if is_ai_fallback(ai_text):
-        assistant_msg = save_chat_message(event_id, "assistant", ai_text, db)
-        db.commit()
-        db.refresh(assistant_msg)
-        return assistant_msg
-
-    # Persist assistant message
+    # Persist the assistant reply, including the provider's graceful fallback text.
     assistant_msg = save_chat_message(event_id, "assistant", ai_text, db)
     db.commit()
     db.refresh(assistant_msg)
@@ -93,9 +81,6 @@ async def get_ideas(
     db: Session = Depends(get_db),
 ) -> dict:
     """Generate personalized theme/decor/menu/activity ideas."""
-    from app.services.event_service import get_budget_categories
-    from app.services.prompts import IDEAS_SYSTEM, IDEAS_USER
-
     event = get_event(event_id, current_user.id, db)
     categories = get_budget_categories(event_id, current_user.id, db)
     total_spent = sum(c.spent for c in categories)
@@ -107,19 +92,11 @@ async def get_ideas(
         remaining_budget=remaining,
     )
 
-    ai_text = await call_ai(IDEAS_SYSTEM, user_prompt, use_cache=True)
-
-    if is_ai_fallback(ai_text):
-        raise HTTPException(status_code=503, detail=ai_text)
-
-    raw = extract_json_from_response(ai_text)
-    if not raw:
-        raise HTTPException(status_code=502, detail="AI returned unexpected format. Please retry.")
-    try:
-        return AIIdeas.model_validate(raw).model_dump()
-    except ValidationError as exc:
-        log.warning("AI ideas schema validation failed: %s", type(exc).__name__)
-        raise HTTPException(
-            status_code=502,
-            detail="AI response did not match expected format.",
-        ) from None
+    validated = await generate_model(
+        IDEAS_SYSTEM,
+        user_prompt,
+        AIIdeas,
+        use_cache=True,
+        label="Ideas",
+    )
+    return validated.model_dump()

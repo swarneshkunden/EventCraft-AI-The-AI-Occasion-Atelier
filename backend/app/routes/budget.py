@@ -1,19 +1,17 @@
 """Budget routes – category management and AI split generation."""
 import json
-import logging
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
-from app.config.settings import get_settings
 from app.models.models import User
-from app.services.ai_service import call_ai, extract_json_from_response, is_ai_fallback
+from app.services.ai_generation import generate_model
 from app.services.auth_service import get_current_user
 from app.services.event_service import (
     get_budget_categories,
     get_event,
+    get_tasks,
     set_budget_categories,
     update_budget_category,
 )
@@ -26,9 +24,6 @@ from app.validators.schemas import (
     BudgetCategoryUpdate,
     ScenarioRequest,
 )
-
-log = logging.getLogger(__name__)
-settings = get_settings()
 
 router = APIRouter(prefix="/api/events/{event_id}/budget", tags=["budget"])
 
@@ -85,23 +80,13 @@ async def generate_ai_split(
         budget=event.total_budget,
     )
 
-    ai_text = await call_ai(BUDGET_SPLIT_SYSTEM, user_prompt, use_cache=True)
-
-    if is_ai_fallback(ai_text):
-        raise HTTPException(status_code=503, detail=ai_text)
-
-    raw = extract_json_from_response(ai_text)
-    if not raw:
-        raise HTTPException(status_code=502, detail="AI returned unexpected format. Please retry.")
-
-    try:
-        validated = AIBudgetSplit.model_validate(raw)
-    except ValidationError as exc:
-        log.warning("AI budget split schema validation failed: %s", type(exc).__name__)
-        raise HTTPException(
-            status_code=502,
-            detail="AI response did not match expected format.",
-        ) from None
+    validated = await generate_model(
+        BUDGET_SPLIT_SYSTEM,
+        user_prompt,
+        AIBudgetSplit,
+        use_cache=True,
+        label="Budget split",
+    )
 
     # Clamp total to event budget
     total_allocated = sum(c.allocated for c in validated.categories)
@@ -133,8 +118,6 @@ async def run_scenario(
     """
     event = get_event(event_id, current_user.id, db)
     categories = get_budget_categories(event_id, current_user.id, db)
-
-    from app.services.event_service import get_tasks
     tasks = get_tasks(event_id, current_user.id, db)
 
     budget_json = json.dumps(
@@ -153,21 +136,11 @@ async def run_scenario(
         profile_json=json.dumps(event.profile, indent=2),
     )
 
-    ai_text = await call_ai(REPLAN_SYSTEM, user_prompt, use_cache=False)
-
-    if is_ai_fallback(ai_text):
-        raise HTTPException(status_code=503, detail=ai_text)
-
-    raw = extract_json_from_response(ai_text)
-    if not raw:
-        raise HTTPException(status_code=502, detail="AI returned unexpected format. Please retry.")
-
-    try:
-        validated = AIReplanDiff.model_validate(raw)
-        return validated.model_dump()
-    except ValidationError as exc:
-        log.warning("AI replan schema validation failed: %s", type(exc).__name__)
-        raise HTTPException(
-            status_code=502,
-            detail="AI response did not match expected format.",
-        ) from None
+    validated = await generate_model(
+        REPLAN_SYSTEM,
+        user_prompt,
+        AIReplanDiff,
+        use_cache=False,
+        label="Budget scenario",
+    )
+    return validated.model_dump()

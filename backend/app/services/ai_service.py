@@ -14,6 +14,7 @@ from typing import Any
 import httpx
 
 from app.config.settings import get_settings
+from app.services.prompts import PROMPT_VERSION
 
 log = logging.getLogger(__name__)
 settings = get_settings()
@@ -31,7 +32,7 @@ _AI_FALLBACK = (
 
 
 def _make_cache_key(model_name: str, prompt: str) -> str:
-    combined = f"{model_name}:{prompt}"
+    combined = f"{PROMPT_VERSION}:{model_name}:{prompt}"
     return hashlib.sha256(combined.encode()).hexdigest()
 
 

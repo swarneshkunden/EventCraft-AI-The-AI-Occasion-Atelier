@@ -15,9 +15,11 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import configure_logging, engine, get_settings
+from app.errors import AppError
 from app.middleware import (
     RateLimitMiddleware,
     SecurityHeadersMiddleware,
+    app_exception_handler,
     generic_exception_handler,
     http_exception_handler,
     sqlalchemy_exception_handler,
@@ -60,6 +62,7 @@ app.add_middleware(
 )
 
 # ── Error handlers ────────────────────────────────────────────────────────────
+app.add_exception_handler(AppError, app_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(SQLAlchemyError, sqlalchemy_exception_handler)

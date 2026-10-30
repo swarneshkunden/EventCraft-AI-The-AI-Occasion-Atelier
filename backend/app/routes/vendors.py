@@ -1,14 +1,10 @@
 """Vendor routes – CRUD plus AI checklist/questions generation."""
-import logging
-
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
-from app.config.settings import get_settings
 from app.models.models import BudgetCategory, User
-from app.services.ai_service import call_ai, extract_json_from_response, is_ai_fallback
+from app.services.ai_generation import generate_model
 from app.services.auth_service import get_current_user
 from app.services.event_service import (
     create_vendor,
@@ -20,9 +16,6 @@ from app.services.event_service import (
 )
 from app.services.prompts import VENDOR_QUESTIONS_SYSTEM, VENDOR_QUESTIONS_USER
 from app.validators.schemas import AIVendorQuestions, VendorCreate, VendorResponse, VendorUpdate
-
-log = logging.getLogger(__name__)
-settings = get_settings()
 
 router = APIRouter(prefix="/api/events/{event_id}/vendors", tags=["vendors"])
 
@@ -107,23 +100,13 @@ async def generate_questions(
         category_budget=cat_budget,
     )
 
-    ai_text = await call_ai(VENDOR_QUESTIONS_SYSTEM, user_prompt, use_cache=True)
-
-    if is_ai_fallback(ai_text):
-        raise HTTPException(status_code=503, detail=ai_text)
-
-    raw = extract_json_from_response(ai_text)
-    if not raw:
-        raise HTTPException(status_code=502, detail="AI returned unexpected format. Please retry.")
-
-    try:
-        validated = AIVendorQuestions.model_validate(raw)
-    except ValidationError as exc:
-        log.warning("AI vendor response schema validation failed: %s", type(exc).__name__)
-        raise HTTPException(
-            status_code=502,
-            detail="AI response did not match expected format.",
-        ) from None
+    validated = await generate_model(
+        VENDOR_QUESTIONS_SYSTEM,
+        user_prompt,
+        AIVendorQuestions,
+        use_cache=True,
+        label="Vendor questions",
+    )
 
     vendor = set_vendor_ai_data(vendor, validated.checklist, validated.questions, db)
     db.commit()

@@ -4,11 +4,12 @@ import json
 from app.services.ai_service import _AI_FALLBACK
 
 
-def _mock_ai(monkeypatch, route_module, response):
+def _mock_ai(monkeypatch, _route_module, response):
     async def fake_call_ai(*_args, **_kwargs):
         return response
 
-    monkeypatch.setattr(f"app.routes.{route_module}.call_ai", fake_call_ai)
+    monkeypatch.setattr("app.services.ai_generation.call_ai", fake_call_ai)
+    monkeypatch.setattr("app.routes.chat.call_ai", fake_call_ai)
 
 
 def test_chat_persists_user_and_assistant_messages(auth_client, sample_event, monkeypatch):

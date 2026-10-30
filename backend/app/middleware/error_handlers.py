@@ -11,6 +11,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.errors import AppError
+
 log = logging.getLogger(__name__)
 
 
@@ -46,6 +48,21 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException) 
         status_code=exc.status_code,
         content={"detail": detail, "request_id": _request_id(request)},
         headers=exc.headers,
+    )
+
+
+async def app_exception_handler(request: Request, exc: AppError) -> JSONResponse:
+    """Translate a service-level domain error into its documented HTTP response."""
+    log.info(
+        "Domain error on %s %s (status %d, %s)",
+        request.method,
+        request.url.path,
+        exc.status_code,
+        type(exc).__name__,
+    )
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail, "request_id": _request_id(request)},
     )
 
 

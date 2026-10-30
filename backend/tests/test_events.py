@@ -134,7 +134,7 @@ class TestAIBudgetSplit:
             ]
         })
 
-        with mock.patch("app.routes.budget.call_ai", return_value=mock_response):
+        with mock.patch("app.services.ai_generation.call_ai", return_value=mock_response):
             resp = auth_client.post(f"/api/events/{event_id}/budget/ai-split")
 
         assert resp.status_code == 200
@@ -163,7 +163,7 @@ class TestAIBudgetSplit:
             "trade_offs": ["Reduce decor spending to preserve the total budget."],
         })
 
-        with mock.patch("app.routes.budget.call_ai", return_value=ai_response):
+        with mock.patch("app.services.ai_generation.call_ai", return_value=ai_response):
             response = auth_client.post(
                 f"/api/events/{event_id}/budget/scenario",
                 json={"description": "Guest count increased"},
@@ -187,8 +187,8 @@ class TestAIBudgetSplit:
         event_id = sample_event["id"]
         fallback = "⚠️ The AI assistant is temporarily unavailable."
 
-        with mock.patch("app.routes.budget.call_ai", return_value=fallback):
-            with mock.patch("app.routes.budget.is_ai_fallback", return_value=True):
+        with mock.patch("app.services.ai_generation.call_ai", return_value=fallback):
+            with mock.patch("app.services.ai_generation.is_ai_fallback", return_value=True):
                 resp = auth_client.post(f"/api/events/{event_id}/budget/ai-split")
 
         assert resp.status_code == 503
@@ -196,7 +196,7 @@ class TestAIBudgetSplit:
     def test_ai_invalid_json_returns_502(self, auth_client, sample_event):
         event_id = sample_event["id"]
 
-        with mock.patch("app.routes.budget.call_ai", return_value="not json at all {{broken"):
+        with mock.patch("app.services.ai_generation.call_ai", return_value="not json at all {{broken"):
             resp = auth_client.post(f"/api/events/{event_id}/budget/ai-split")
 
         assert resp.status_code == 502
