@@ -37,6 +37,7 @@ def test_chat_ideas_validate_and_return_structured_output(
     response = auth_client.get(f"/api/events/{sample_event['id']}/chat/ideas")
 
     assert response.status_code == 200
+    assert response.headers["X-AI-Source"] == "ai"
     assert response.json() == expected
 
 
@@ -61,6 +62,7 @@ def test_budget_split_is_clamped_to_event_budget(auth_client, sample_event, monk
     response = auth_client.post(f"/api/events/{sample_event['id']}/budget/ai-split")
 
     assert response.status_code == 200
+    assert response.headers["X-AI-Source"] == "ai"
     assert sum(category["allocated"] for category in response.json()) == 500000
 
 
@@ -80,6 +82,7 @@ def test_task_generation_validates_and_stores_tasks(auth_client, sample_event, m
     response = auth_client.post(f"/api/events/{sample_event['id']}/tasks/generate")
 
     assert response.status_code == 200
+    assert response.headers["X-AI-Source"] == "ai"
     assert response.json()["tasks"][0]["title"] == "Confirm the venue"
     assert response.json()["tasks"][0]["is_ready"] is True
 
@@ -107,15 +110,54 @@ def test_vendor_questions_validate_and_persist_ai_data(
     )
 
     assert response.status_code == 200
+    assert response.headers["X-AI-Source"] == "ai"
     assert response.json()["ai_checklist"] == ["Confirm vegetarian options"]
     assert response.json()["ai_questions"] == ["Can you serve 100 guests?"]
 
 
-def test_ai_routes_return_service_unavailable_on_provider_fallback(
+def test_ai_routes_fall_back_when_provider_is_unavailable(
     auth_client, sample_event, monkeypatch
 ):
     _mock_ai(monkeypatch, "tasks", _AI_FALLBACK)
 
     response = auth_client.post(f"/api/events/{sample_event['id']}/tasks/generate")
 
-    assert response.status_code == 503
+    assert response.status_code == 200
+    assert response.headers["X-AI-Source"] == "fallback"
+    tasks = response.json()["tasks"]
+    assert tasks
+    assert all(task["title"] for task in tasks)
+
+
+def test_chat_ideas_fall_back_when_provider_is_unavailable(
+    auth_client, sample_event, monkeypatch
+):
+    _mock_ai(monkeypatch, "chat", _AI_FALLBACK)
+
+    response = auth_client.get(f"/api/events/{sample_event['id']}/chat/ideas")
+
+    assert response.status_code == 200
+    assert response.headers["X-AI-Source"] == "fallback"
+    ideas = response.json()
+    assert ideas["themes"] and ideas["decor"] and ideas["menu"] and ideas["activities"]
+
+
+def test_vendor_questions_fall_back_when_provider_is_unavailable(
+    auth_client, sample_event, monkeypatch
+):
+    event_id = sample_event["id"]
+    created = auth_client.post(
+        f"/api/events/{event_id}/vendors",
+        json={"vendor_type": "caterer", "name": "Garden Catering"},
+    )
+    assert created.status_code == 201
+    _mock_ai(monkeypatch, "vendors", _AI_FALLBACK)
+
+    response = auth_client.post(
+        f"/api/events/{event_id}/vendors/{created.json()['id']}/generate-questions"
+    )
+
+    assert response.status_code == 200
+    assert response.headers["X-AI-Source"] == "fallback"
+    assert response.json()["ai_checklist"]
+    assert response.json()["ai_questions"]

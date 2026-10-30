@@ -183,7 +183,7 @@ class TestAIBudgetSplit:
         )
         assert response.status_code == 400
 
-    def test_ai_fallback_returns_503(self, auth_client, sample_event):
+    def test_ai_fallback_returns_deterministic_split(self, auth_client, sample_event):
         event_id = sample_event["id"]
         fallback = "⚠️ The AI assistant is temporarily unavailable."
 
@@ -191,7 +191,11 @@ class TestAIBudgetSplit:
             with mock.patch("app.services.ai_generation.is_ai_fallback", return_value=True):
                 resp = auth_client.post(f"/api/events/{event_id}/budget/ai-split")
 
-        assert resp.status_code == 503
+        assert resp.status_code == 200
+        assert resp.headers["X-AI-Source"] == "fallback"
+        categories = resp.json()
+        assert categories
+        assert sum(c["allocated"] for c in categories) <= 500000 + 1
 
     def test_ai_invalid_json_returns_502(self, auth_client, sample_event):
         event_id = sample_event["id"]

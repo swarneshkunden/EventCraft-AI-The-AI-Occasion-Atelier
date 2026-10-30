@@ -1,12 +1,13 @@
 """Budget routes – category management and AI split generation."""
 import json
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
 from app.models.models import User
-from app.services.ai_generation import generate_model
+from app.services.ai_fallbacks import fallback_budget_split
+from app.services.ai_generation import generate_model, generate_with_fallback, mark_source
 from app.services.auth_service import get_current_user
 from app.services.event_service import (
     get_budget_categories,
@@ -68,6 +69,7 @@ async def update_category(
 @router.post("/ai-split", response_model=list[BudgetCategoryResponse])
 async def generate_ai_split(
     event_id: str,
+    response: Response,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> list:
@@ -80,13 +82,15 @@ async def generate_ai_split(
         budget=event.total_budget,
     )
 
-    validated = await generate_model(
+    validated, used_ai = await generate_with_fallback(
         BUDGET_SPLIT_SYSTEM,
         user_prompt,
         AIBudgetSplit,
+        lambda: fallback_budget_split(event),
         use_cache=True,
         label="Budget split",
     )
+    mark_source(response, used_ai)
 
     # Clamp total to event budget
     total_allocated = sum(c.allocated for c in validated.categories)

@@ -2,12 +2,13 @@
 import json
 from datetime import date
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
 from app.models.models import User
-from app.services.ai_generation import generate_model
+from app.services.ai_fallbacks import fallback_task_list
+from app.services.ai_generation import generate_with_fallback, mark_source
 from app.services.auth_service import get_current_user
 from app.services.event_service import (
     bulk_create_tasks,
@@ -73,6 +74,7 @@ async def update_task_status(
 @router.post("/generate")
 async def generate_tasks(
     event_id: str,
+    response: Response,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
@@ -89,13 +91,15 @@ async def generate_tasks(
         today=date.today().isoformat(),
     )
 
-    validated = await generate_model(
+    validated, used_ai = await generate_with_fallback(
         TASK_GENERATION_SYSTEM,
         user_prompt,
         AITaskList,
+        lambda: fallback_task_list(event),
         use_cache=True,
         label="Task generation",
     )
+    mark_source(response, used_ai)
 
     tasks = bulk_create_tasks(
         event_id,

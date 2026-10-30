@@ -1,12 +1,13 @@
 """Chat assistant route – context-aware AI chat for a specific event."""
 import json
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
 from app.models.models import User
-from app.services.ai_generation import generate_model
+from app.services.ai_fallbacks import fallback_ideas
+from app.services.ai_generation import generate_with_fallback, mark_source
 from app.services.ai_service import call_ai
 from app.services.auth_service import get_current_user
 from app.services.event_service import (
@@ -77,6 +78,7 @@ async def send_message(
 @router.get("/ideas")
 async def get_ideas(
     event_id: str,
+    response: Response,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
@@ -92,11 +94,13 @@ async def get_ideas(
         remaining_budget=remaining,
     )
 
-    validated = await generate_model(
+    validated, used_ai = await generate_with_fallback(
         IDEAS_SYSTEM,
         user_prompt,
         AIIdeas,
+        lambda: fallback_ideas(event),
         use_cache=True,
         label="Ideas",
     )
+    mark_source(response, used_ai)
     return validated.model_dump()

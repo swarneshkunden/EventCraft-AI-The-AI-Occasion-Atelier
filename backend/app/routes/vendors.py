@@ -1,10 +1,11 @@
 """Vendor routes – CRUD plus AI checklist/questions generation."""
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
 from app.models.models import BudgetCategory, User
-from app.services.ai_generation import generate_model
+from app.services.ai_fallbacks import fallback_vendor_questions
+from app.services.ai_generation import generate_with_fallback, mark_source
 from app.services.auth_service import get_current_user
 from app.services.event_service import (
     create_vendor,
@@ -71,6 +72,7 @@ async def delete(
 async def generate_questions(
     event_id: str,
     vendor_id: str,
+    response: Response,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> VendorResponse:
@@ -100,13 +102,15 @@ async def generate_questions(
         category_budget=cat_budget,
     )
 
-    validated = await generate_model(
+    validated, used_ai = await generate_with_fallback(
         VENDOR_QUESTIONS_SYSTEM,
         user_prompt,
         AIVendorQuestions,
+        lambda: fallback_vendor_questions(event, vendor.vendor_type),
         use_cache=True,
         label="Vendor questions",
     )
+    mark_source(response, used_ai)
 
     vendor = set_vendor_ai_data(vendor, validated.checklist, validated.questions, db)
     db.commit()
