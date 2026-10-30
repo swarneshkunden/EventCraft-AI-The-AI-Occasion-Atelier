@@ -32,7 +32,7 @@ export function openNewEventModal(eventToEdit = null) {
         <!-- Header -->
         <div class="modal-header">
           <div>
-            <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--clr-accent);">
+            <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--clr-accent-foreground);">
               Guided Intake Wizard
             </div>
             <h3 class="modal-title font-serif" id="intake-wizard-title">${modalTitle}</h3>
@@ -74,19 +74,19 @@ export function openNewEventModal(eventToEdit = null) {
               Select the occasion to calibrate AI budgeting, timelines, and vendor interview checklists.
             </p>
 
-            <div class="grid-2" id="occasion-cards" style="gap: 12px; margin-bottom: 18px;">
-              <div class="chip card ${eventType === 'wedding' ? 'selected' : ''}" data-type="wedding" style="border-radius: var(--radius-md); padding: 14px; text-align: left; cursor: pointer;">
-                <div style="font-size: 1.1rem; margin-bottom: 4px;">💍 Wedding</div>
-                <div class="text-muted" style="font-size: 0.75rem;">Ceremony, reception, banquet & entertainment</div>
-              </div>
-              <div class="chip card ${eventType === 'birthday' ? 'selected' : ''}" data-type="birthday" style="border-radius: var(--radius-md); padding: 14px; text-align: left; cursor: pointer;">
-                <div style="font-size: 1.1rem; margin-bottom: 4px;">🎂 Milestone Birthday</div>
-                <div class="text-muted" style="font-size: 0.75rem;">Intimate or grand milestone party</div>
-              </div>
-              <div class="chip card ${eventType === 'community' ? 'selected' : ''}" data-type="community" style="border-radius: var(--radius-md); padding: 14px; text-align: left; cursor: pointer;">
-                <div style="font-size: 1.1rem; margin-bottom: 4px;">🎪 Community Festival</div>
-                <div class="text-muted" style="font-size: 0.75rem;">Neighborhood gathering, cultural fair</div>
-              </div>
+            <div class="grid-2" id="occasion-cards" role="group" aria-label="Choose an occasion" style="gap: 12px; margin-bottom: 18px;">
+              <button type="button" class="chip card ${eventType === 'wedding' ? 'selected' : ''}" aria-pressed="${eventType === 'wedding'}" data-type="wedding" style="border-radius: var(--radius-md); padding: 14px; text-align: left; cursor: pointer;">
+                <span style="font-size: 1.1rem; margin-bottom: 4px;">💍 Wedding</span>
+                <span class="text-muted" style="font-size: 0.75rem;">Ceremony, reception, banquet & entertainment</span>
+              </button>
+              <button type="button" class="chip card ${eventType === 'birthday' ? 'selected' : ''}" aria-pressed="${eventType === 'birthday'}" data-type="birthday" style="border-radius: var(--radius-md); padding: 14px; text-align: left; cursor: pointer;">
+                <span style="font-size: 1.1rem; margin-bottom: 4px;">🎂 Milestone Birthday</span>
+                <span class="text-muted" style="font-size: 0.75rem;">Intimate or grand milestone party</span>
+              </button>
+              <button type="button" class="chip card ${eventType === 'community' ? 'selected' : ''}" aria-pressed="${eventType === 'community'}" data-type="community" style="border-radius: var(--radius-md); padding: 14px; text-align: left; cursor: pointer;">
+                <span style="font-size: 1.1rem; margin-bottom: 4px;">🎪 Community Festival</span>
+                <span class="text-muted" style="font-size: 0.75rem;">Neighborhood gathering, cultural fair</span>
+              </button>
             </div>
 
             <div class="form-group">
@@ -133,7 +133,7 @@ export function openNewEventModal(eventToEdit = null) {
                 <span class="badge badge-gold" id="budget-tier-badge">Grand Celebration</span>
               </div>
 
-              <div style="font-size: 2.2rem; font-weight: 800; font-family: var(--font-display); color: var(--clr-accent); margin-bottom: 16px;" id="display-budget-val">
+              <div style="font-size: 2.2rem; font-weight: 800; font-family: var(--font-display); color: var(--clr-accent-foreground); margin-bottom: 16px;" id="display-budget-val">
                 ${formatCurrency(budget, currency)}
               </div>
 
@@ -169,30 +169,30 @@ export function openNewEventModal(eventToEdit = null) {
 
             <div class="form-group" style="margin-bottom: 16px;">
               <label>Experience Tier</label>
-              <div class="grid-3" id="experience-tier-cards" style="gap: 8px;">
-                <div class="chip card ${experienceLevel === 'simple' ? 'selected' : ''}" data-level="simple" style="border-radius: var(--radius-md); padding: 10px; text-align: center; cursor: pointer;">
-                  <div style="font-weight: 700; font-size: 0.85rem;">Essential & Clean</div>
-                  <div class="text-muted" style="font-size: 0.7rem;">Focus on essentials</div>
-                </div>
-                <div class="chip card ${experienceLevel === 'moderate' ? 'selected' : ''}" data-level="moderate" style="border-radius: var(--radius-md); padding: 10px; text-align: center; cursor: pointer;">
-                  <div style="font-weight: 700; font-size: 0.85rem;">Polished & Elegant</div>
-                  <div class="text-muted" style="font-size: 0.7rem;">Balanced luxury</div>
-                </div>
-                <div class="chip card ${experienceLevel === 'premium' ? 'selected' : ''}" data-level="premium" style="border-radius: var(--radius-md); padding: 10px; text-align: center; cursor: pointer;">
-                  <div style="font-weight: 700; font-size: 0.85rem;">Opulent Haute</div>
-                  <div class="text-muted" style="font-size: 0.7rem;">Highest craft tier</div>
-                </div>
+              <div class="grid-3" id="experience-tier-cards" role="group" aria-label="Choose your planning experience" style="gap: 8px;">
+                <button type="button" class="chip card ${experienceLevel === 'simple' ? 'selected' : ''}" aria-pressed="${experienceLevel === 'simple'}" data-level="simple" style="border-radius: var(--radius-md); padding: 10px; text-align: center; cursor: pointer;">
+                  <span style="font-weight: 700; font-size: 0.85rem;">Essential & Clean</span>
+                  <span class="text-muted" style="font-size: 0.7rem;">Focus on essentials</span>
+                </button>
+                <button type="button" class="chip card ${experienceLevel === 'moderate' ? 'selected' : ''}" aria-pressed="${experienceLevel === 'moderate'}" data-level="moderate" style="border-radius: var(--radius-md); padding: 10px; text-align: center; cursor: pointer;">
+                  <span style="font-weight: 700; font-size: 0.85rem;">Polished & Elegant</span>
+                  <span class="text-muted" style="font-size: 0.7rem;">Balanced luxury</span>
+                </button>
+                <button type="button" class="chip card ${experienceLevel === 'premium' ? 'selected' : ''}" aria-pressed="${experienceLevel === 'premium'}" data-level="premium" style="border-radius: var(--radius-md); padding: 10px; text-align: center; cursor: pointer;">
+                  <span style="font-weight: 700; font-size: 0.85rem;">Opulent Haute</span>
+                  <span class="text-muted" style="font-size: 0.7rem;">Highest craft tier</span>
+                </button>
               </div>
             </div>
 
             <div class="form-group" style="margin-bottom: 16px;">
               <label>Atmosphere & Vibe</label>
-              <div class="chip-group" id="theme-chips">
-                <span class="chip ${atmosphere === 'Royal Regal' ? 'selected' : ''}" data-vibe="Royal Regal">👑 Royal Regal</span>
-                <span class="chip ${atmosphere === 'Romantic Candlelight' ? 'selected' : ''}" data-vibe="Romantic Candlelight">🕯️ Romantic Candlelight</span>
-                <span class="chip ${atmosphere === 'Rustic Elegance' ? 'selected' : ''}" data-vibe="Rustic Elegance">🌿 Rustic Elegance</span>
-                <span class="chip ${atmosphere === 'Modern Haute Minimalist' ? 'selected' : ''}" data-vibe="Modern Haute Minimalist">✨ Haute Minimalist</span>
-                <span class="chip ${atmosphere === 'Festive Carnival' ? 'selected' : ''}" data-vibe="Festive Carnival">🎉 Festive & Vibrant</span>
+              <div class="chip-group" id="theme-chips" role="group" aria-label="Choose an atmosphere">
+                <button type="button" class="chip ${atmosphere === 'Royal Regal' ? 'selected' : ''}" aria-pressed="${atmosphere === 'Royal Regal'}" data-vibe="Royal Regal">👑 Royal Regal</button>
+                <button type="button" class="chip ${atmosphere === 'Romantic Candlelight' ? 'selected' : ''}" aria-pressed="${atmosphere === 'Romantic Candlelight'}" data-vibe="Romantic Candlelight">🕯️ Romantic Candlelight</button>
+                <button type="button" class="chip ${atmosphere === 'Rustic Elegance' ? 'selected' : ''}" aria-pressed="${atmosphere === 'Rustic Elegance'}" data-vibe="Rustic Elegance">🌿 Rustic Elegance</button>
+                <button type="button" class="chip ${atmosphere === 'Modern Haute Minimalist' ? 'selected' : ''}" aria-pressed="${atmosphere === 'Modern Haute Minimalist'}" data-vibe="Modern Haute Minimalist">✨ Haute Minimalist</button>
+                <button type="button" class="chip ${atmosphere === 'Festive Carnival' ? 'selected' : ''}" aria-pressed="${atmosphere === 'Festive Carnival'}" data-vibe="Festive Carnival">🎉 Festive & Vibrant</button>
               </div>
             </div>
 
@@ -268,8 +268,12 @@ export function openNewEventModal(eventToEdit = null) {
   const occasionCards = document.querySelectorAll('#occasion-cards .card');
   occasionCards.forEach((card) => {
     card.addEventListener('click', () => {
-      occasionCards.forEach((c) => c.classList.remove('selected'));
+      occasionCards.forEach((c) => {
+        c.classList.remove('selected');
+        c.setAttribute('aria-pressed', 'false');
+      });
       card.classList.add('selected');
+      card.setAttribute('aria-pressed', 'true');
     });
   });
 
@@ -277,8 +281,12 @@ export function openNewEventModal(eventToEdit = null) {
   const expCards = document.querySelectorAll('#experience-tier-cards .card');
   expCards.forEach((card) => {
     card.addEventListener('click', () => {
-      expCards.forEach((c) => c.classList.remove('selected'));
-      card.classList.add('selected');
+    expCards.forEach((c) => {
+      c.classList.remove('selected');
+      c.setAttribute('aria-pressed', 'false');
+    });
+    card.classList.add('selected');
+    card.setAttribute('aria-pressed', 'true');
     });
   });
 
@@ -286,8 +294,12 @@ export function openNewEventModal(eventToEdit = null) {
   const themeChips = document.querySelectorAll('#theme-chips .chip');
   themeChips.forEach((chip) => {
     chip.addEventListener('click', () => {
-      themeChips.forEach((c) => c.classList.remove('selected'));
-      chip.classList.add('selected');
+    themeChips.forEach((c) => {
+      c.classList.remove('selected');
+      c.setAttribute('aria-pressed', 'false');
+    });
+    chip.classList.add('selected');
+    chip.setAttribute('aria-pressed', 'true');
     });
   });
 

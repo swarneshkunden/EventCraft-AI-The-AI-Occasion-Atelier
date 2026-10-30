@@ -83,6 +83,7 @@ async function renderPage(route, contentEl) {
       return;
     }
     contentEl.innerHTML = html;
+    contentEl.setAttribute('aria-busy', 'false');
     initialize();
   } catch (err) {
     console.error('Page render error', err);
@@ -96,14 +97,15 @@ async function renderPage(route, contentEl) {
     contentEl.innerHTML = `
       <div class="page-body">
         <div class="card" style="border-left: 4px solid var(--clr-danger);">
-          <h3>Error loading page</h3>
-          <p style="color: var(--clr-text-muted);">${err.message || 'An unexpected error occurred.'}</p>
+          <h1>Error loading page</h1>
+          <p role="alert" aria-live="assertive" style="color: var(--clr-text-muted);">${err.message || 'An unexpected error occurred.'}</p>
           <button id="btn-reload-application" class="btn btn-secondary btn-sm" style="margin-top: 12px;">
             Reload Application
           </button>
         </div>
       </div>
     `;
+    contentEl.setAttribute('aria-busy', 'false');
     document.getElementById('btn-reload-application')?.addEventListener('click', () => {
       window.location.reload();
     });
@@ -139,12 +141,15 @@ async function renderApp() {
       <div class="main-content">
         ${renderNavbar()}
         <main id="main-content" class="workspace-main" tabindex="-1">
-          <div id="page-content" style="min-height: calc(100vh - var(--header-height));">
-            <div style="padding: 40px; text-align: center;">
+          <div id="page-content" aria-busy="true" style="min-height: calc(100vh - var(--header-height));">
+            <div role="status" aria-live="polite" aria-label="Loading page" style="padding: 40px; text-align: center;">
               <span class="spinner spinner-lg"></span>
             </div>
           </div>
         </main>
+        <footer class="workspace-footer">
+          <span>EventCraft AI · Plan with care. Celebrate with presence.</span>
+        </footer>
       </div>
     </div>
   `;
@@ -240,7 +245,7 @@ async function init() {
   appEl.innerHTML = `
     <div style="display: flex; height: 100vh; align-items: center; justify-content: center; flex-direction: column; gap: 16px;">
       <span class="spinner spinner-lg"></span>
-      <p style="color: var(--clr-text-muted); font-size: 0.9rem;">Starting EventCraft AI...</p>
+      <p role="status" aria-live="polite" style="color: var(--clr-text-muted); font-size: 0.9rem;">Starting EventCraft AI...</p>
     </div>
   `;
 

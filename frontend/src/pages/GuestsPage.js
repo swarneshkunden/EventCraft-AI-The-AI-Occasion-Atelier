@@ -22,6 +22,7 @@ export async function renderGuestsPage() {
     return `
       <div class="page-body">
         <div class="empty-state card">
+          <h1>Guest List & RSVP Manager</h1>
           <p>Please select or create an event to manage guest lists.</p>
         </div>
       </div>
@@ -60,9 +61,9 @@ export async function renderGuestsPage() {
       <div class="card" style="margin-bottom: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
           <div>
-            <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 4px;">
+            <h1 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 4px;">
               Guest List & RSVP Manager
-            </h2>
+            </h1>
             <p style="font-size: 0.85rem; color: var(--clr-text-muted);">
               Track RSVP status, dietary restrictions, and accessibility needs.
             </p>
@@ -129,6 +130,7 @@ export async function renderGuestsPage() {
           <input
             type="text"
             id="input-guest-search"
+            aria-label="Search guests by name or email"
             placeholder="🔍 Search guests by name or email..."
             style="max-width: 300px;"
             value="${escapeHtml(searchQuery)}"
@@ -306,7 +308,7 @@ function openAddGuestModal(eventId) {
       <div class="modal" role="dialog" aria-labelledby="modal-add-guest-title" aria-modal="true">
         <div class="modal-header">
           <h3 class="modal-title" id="modal-add-guest-title">👥 Add New Guest</h3>
-          <button class="btn btn-ghost btn-sm" id="btn-close-add-guest">✕</button>
+          <button class="btn btn-ghost btn-sm" id="btn-close-add-guest" aria-label="Close add guest dialog">✕</button>
         </div>
 
         <form id="form-add-guest" class="modal-body">
@@ -417,7 +419,7 @@ Vikram Mehta,vikram@test.com,+91 9876543213,declined,,Wheelchair access`;
       <div class="modal" role="dialog" aria-labelledby="modal-import-title" aria-modal="true">
         <div class="modal-header">
           <h3 class="modal-title" id="modal-import-title">📥 Import Guests from CSV</h3>
-          <button class="btn btn-ghost btn-sm" id="btn-close-import">✕</button>
+          <button class="btn btn-ghost btn-sm" id="btn-close-import" aria-label="Close guest import dialog">✕</button>
         </div>
 
         <div class="modal-body">

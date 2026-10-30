@@ -23,7 +23,8 @@ export async function renderTasksPage() {
       <div class="page-body">
         <div class="empty-state card">
           <div class="empty-icon">${icons.timeline(36)}</div>
-          <h3 class="serif" style="font-size: 1.4rem; margin-bottom: 8px;">No Active Celebration Selected</h3>
+          <h1 class="serif" style="font-size: 1.4rem; margin-bottom: 8px;">Milestones & Timeline</h1>
+          <h2 class="serif" style="font-size: 1.4rem; margin-bottom: 8px;">No Active Celebration Selected</h2>
           <p style="color: var(--clr-text-muted); max-width: 440px; margin: 0 auto 20px;">
             Select or create a celebration to generate your milestone schedule.
           </p>
@@ -53,7 +54,7 @@ export async function renderTasksPage() {
 
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; margin-bottom: 20px;">
           <div>
-            <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; text-transform: uppercase; color: var(--clr-accent); font-weight: 700; letter-spacing: 0.12em; margin-bottom: 6px;">
+            <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; text-transform: uppercase; color: var(--clr-accent-foreground); font-weight: 700; letter-spacing: 0.12em; margin-bottom: 6px;">
               ${icons.timeline(14)} Critical Path Timeline
             </div>
             <h1 class="serif" style="font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 700; color: var(--clr-primary); line-height: 1.1; margin-bottom: 4px;">
@@ -89,8 +90,8 @@ export async function renderTasksPage() {
             <div class="serif tabular-nums" style="font-size: 1.5rem; font-weight: 700; color: var(--clr-danger);">${blockedCount}</div>
           </div>
           <div style="background: var(--clr-surface); padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--clr-border); border-left: 3px solid var(--clr-accent);">
-            <div style="font-size: 0.7rem; color: var(--clr-accent); text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em;">Completed</div>
-            <div class="serif tabular-nums" style="font-size: 1.5rem; font-weight: 700; color: var(--clr-accent);">${doneCount}</div>
+            <div style="font-size: 0.7rem; color: var(--clr-accent-foreground); text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em;">Completed</div>
+            <div class="serif tabular-nums" style="font-size: 1.5rem; font-weight: 700; color: var(--clr-accent-foreground);">${doneCount}</div>
           </div>
         </div>
 
@@ -146,12 +147,12 @@ function renderTaskList(tasks, filter) {
   if (filtered.length === 0) {
     return `
       <div style="padding: 48px 24px; text-align: center; color: var(--clr-text-muted);">
-        <div style="margin-bottom: 12px; color: var(--clr-accent);">
+        <div style="margin-bottom: 12px; color: var(--clr-accent-foreground);">
           ${icons.timeline(36)}
         </div>
-        <h4 class="serif" style="font-size: 1.15rem; color: var(--clr-text); margin-bottom: 6px;">
+        <h2 class="serif" style="font-size: 1.15rem; color: var(--clr-text); margin-bottom: 6px;">
           ${tasks.length === 0 ? 'No Milestones Scheduled Yet' : 'No Tasks in This Category'}
-        </h4>
+        </h2>
         <p style="font-size: 0.85rem; max-width: 440px; margin: 0 auto 16px;">
           ${tasks.length === 0 ? 'Click "✨ AI Generate Timeline" above to let Gemini AI compute all milestones leading up to your date.' : 'Try changing your filter view above.'}
         </p>
@@ -308,7 +309,7 @@ function openAddTaskModal(eventId) {
       <div class="modal" role="dialog" aria-labelledby="modal-add-task-title" aria-modal="true">
         <div class="modal-header">
           <div>
-            <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--clr-accent); font-weight: 700; letter-spacing: 0.08em;">
+            <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--clr-accent-foreground); font-weight: 700; letter-spacing: 0.08em;">
               Milestone Creation
             </div>
             <h3 class="serif modal-title" id="modal-add-task-title" style="font-size: 1.3rem;">Add New Milestone</h3>

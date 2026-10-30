@@ -26,7 +26,7 @@ export async function renderDashboardPage() {
       <div class="page-body">
         <div class="empty-state card" style="max-width: 600px; margin: 60px auto;">
           ${icons.crest(64)}
-          <h2 class="font-serif" style="margin-top: 12px;">Welcome to EventCraft Atelier</h2>
+          <h1 class="font-serif" style="margin-top: 12px;">Welcome to EventCraft Atelier</h1>
           <p class="text-muted" style="max-width: 460px; line-height: 1.6;">
             Begin planning your wedding, milestone birthday, or gala with intelligent budgeting, dependency timelines, and vendor interview tools.
           </p>
@@ -198,7 +198,7 @@ export async function renderDashboardPage() {
           <div style="font-size: 0.75rem; color: var(--clr-text-muted); margin-top: 8px;">
             Confirmed contracts
           </div>
-          <div style="font-size: 0.75rem; color: var(--clr-accent); margin-top: 6px; font-weight: 600;">
+          <div style="font-size: 0.75rem; color: var(--clr-accent-foreground); margin-top: 6px; font-weight: 600;">
             ${vendors.filter((v) => v.status === 'researching' || v.status === 'contacted').length} in active negotiation
           </div>
         </div>
@@ -219,7 +219,7 @@ export async function renderDashboardPage() {
       <section class="card event-preferences-card" aria-labelledby="event-preferences-title">
         <div class="card-header">
           <div>
-            <h3 id="event-preferences-title" class="card-title font-serif">Celebration Details</h3>
+            <h2 id="event-preferences-title" class="card-title font-serif">Celebration Details</h2>
             <p class="text-muted" style="font-size: 0.8rem;">Edit each detail where it appears. Changes save to this event.</p>
           </div>
         </div>
@@ -243,7 +243,7 @@ export async function renderDashboardPage() {
         <div class="card">
           <div class="card-header">
             <div>
-              <h3 class="card-title font-serif">Budget Allocation Donut</h3>
+              <h2 class="card-title font-serif">Budget Allocation Donut</h2>
               <p class="text-muted" style="font-size: 0.8rem;">Allocated vs available reserves</p>
             </div>
             <button class="btn btn-ghost btn-sm" data-dashboard-route="budget">
@@ -258,7 +258,7 @@ export async function renderDashboardPage() {
         <div class="card">
           <div class="card-header">
             <div>
-              <h3 class="card-title font-serif">Next Critical Actions</h3>
+              <h2 class="card-title font-serif">Next Critical Actions</h2>
               <p class="text-muted" style="font-size: 0.8rem;">Prerequisites met • Ready for immediate execution</p>
             </div>
             <button class="btn btn-ghost btn-sm" data-dashboard-route="tasks">
@@ -372,7 +372,7 @@ function generateDonutSvg(categories, totalBudget, currency) {
 
   return `
     <div class="donut-chart-container">
-      <svg width="180" height="180" viewBox="0 0 180 180" style="transform: rotate(-90deg);" aria-label="Budget distribution chart">
+      <svg width="180" height="180" viewBox="0 0 180 180" style="transform: rotate(-90deg);" role="img" aria-label="Budget distribution chart">
         ${circles.join('')}
       </svg>
       <div class="donut-legend">

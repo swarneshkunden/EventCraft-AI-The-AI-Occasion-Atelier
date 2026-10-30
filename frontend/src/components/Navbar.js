@@ -33,7 +33,7 @@ export function renderNavbar() {
 
     <header class="top-navbar" role="banner">
       <div class="navbar-context">
-        <button id="btn-mobile-toggle" class="btn btn-secondary mobile-menu-btn" aria-label="Toggle menu" aria-controls="sidebar" aria-expanded="false" style="padding: 6px 10px; min-height: 40px;">
+        <button id="btn-mobile-toggle" class="btn btn-secondary mobile-menu-btn" aria-label="Open planning menu" aria-controls="sidebar" aria-expanded="false" style="padding: 6px 10px; min-height: 40px;">
           ☰
         </button>
 
@@ -96,6 +96,7 @@ export function initNavbarEvents() {
       document.querySelector('.main-content')?.removeAttribute('inert');
       document.body.classList.remove('sidebar-open');
       toggleBtn.setAttribute('aria-expanded', 'false');
+      toggleBtn.setAttribute('aria-label', 'Open planning menu');
       toggleBtn.focus();
       sidebar.removeEventListener('keydown', onSidebarKeydown);
     };
@@ -109,6 +110,7 @@ export function initNavbarEvents() {
       if (!sidebar) return;
       const isOpen = sidebar.classList.toggle('open');
       toggleBtn.setAttribute('aria-expanded', String(isOpen));
+      toggleBtn.setAttribute('aria-label', isOpen ? 'Close planning menu' : 'Open planning menu');
       if (isOpen) {
         document.querySelector('.main-content')?.setAttribute('inert', '');
         document.body.classList.add('sidebar-open');

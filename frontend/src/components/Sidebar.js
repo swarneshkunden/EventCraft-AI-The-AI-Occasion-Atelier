@@ -32,7 +32,7 @@ export function renderSidebar(currentRoute) {
     : 'EC';
 
   return `
-    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main Navigation">
+    <aside class="sidebar" id="sidebar" aria-label="Planning sidebar">
       <!-- Luxury Brand Crest -->
       <div class="sidebar-brand">
         ${icons.crest(30)}
@@ -48,7 +48,7 @@ export function renderSidebar(currentRoute) {
           <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--clr-text-muted);">
             Active Celebration
           </span>
-          <button id="btn-sidebar-new-event" class="btn btn-ghost btn-sm" style="padding: 2px 6px; height: 26px; font-size: 0.75rem; color: var(--clr-accent);" title="Create New Event">
+          <button id="btn-sidebar-new-event" class="btn btn-ghost btn-sm" style="padding: 2px 6px; height: 26px; font-size: 0.75rem; color: var(--clr-accent-foreground);" title="Create New Event">
             ${icons.plus(14)} New
           </button>
         </div>
@@ -71,7 +71,7 @@ export function renderSidebar(currentRoute) {
       </div>
 
       <!-- Navigation Modules -->
-      <nav class="sidebar-nav">
+      <nav class="sidebar-nav" aria-label="Planning sections">
         <div class="nav-section-title">Planning Suite</div>
         ${navItems
           .map(
@@ -121,6 +121,7 @@ export function initSidebarEvents() {
       document.querySelector('.main-content')?.removeAttribute('inert');
       document.body.classList.remove('sidebar-open');
       document.getElementById('btn-mobile-toggle')?.setAttribute('aria-expanded', 'false');
+      document.getElementById('btn-mobile-toggle')?.setAttribute('aria-label', 'Open planning menu');
     });
   });
 

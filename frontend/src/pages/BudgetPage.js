@@ -28,7 +28,8 @@ export async function renderBudgetPage() {
       <div class="page-body">
         <div class="empty-state card">
           <div class="empty-icon">${icons.budget(36)}</div>
-          <h3 class="serif" style="font-size: 1.4rem; margin-bottom: 8px;">No Active Celebration Selected</h3>
+          <h1 class="serif" style="font-size: 1.4rem; margin-bottom: 8px;">Budget</h1>
+          <h2 class="serif" style="font-size: 1.4rem; margin-bottom: 8px;">No Active Celebration Selected</h2>
           <p style="color: var(--clr-text-muted); max-width: 440px; margin: 0 auto 20px;">
             Select a celebration from the top navigation or create a new celebration to curate your budget.
           </p>
@@ -59,7 +60,7 @@ export async function renderBudgetPage() {
         <!-- Header row -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; margin-bottom: 24px;">
           <div>
-            <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; text-transform: uppercase; color: var(--clr-accent); font-weight: 700; letter-spacing: 0.12em; margin-bottom: 6px;">
+            <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; text-transform: uppercase; color: var(--clr-accent-foreground); font-weight: 700; letter-spacing: 0.12em; margin-bottom: 6px;">
               ${icons.budget(14)} Financial Architecture
             </div>
             <h1 class="serif" style="font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 700; color: var(--clr-primary); line-height: 1.1; margin-bottom: 4px;">
@@ -144,13 +145,13 @@ export async function renderBudgetPage() {
       <div class="card" style="margin-bottom: 24px; border: 1px solid var(--clr-accent); background: linear-gradient(135deg, rgba(201, 162, 75, 0.06), var(--clr-surface));">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(201, 162, 75, 0.15); display: flex; align-items: center; justify-content: center; color: var(--clr-accent);">
+            <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(201, 162, 75, 0.15); display: flex; align-items: center; justify-content: center; color: var(--clr-accent-foreground);">
               ${icons.sparkle(18)}
             </div>
             <div>
-              <h3 class="serif" style="font-size: 1.15rem; font-weight: 700; color: var(--clr-primary);">
+              <h2 class="serif" style="font-size: 1.15rem; font-weight: 700; color: var(--clr-primary);">
                 AI Re-Plan Simulator & Trade-off Engine
-              </h3>
+              </h2>
               <p style="font-size: 0.825rem; color: var(--clr-text-muted); margin: 0;">
                 Test changing assumptions (guest count surges, budget reductions, quote spikes) with instant trade-off impact analysis.
               </p>
@@ -162,6 +163,7 @@ export async function renderBudgetPage() {
         </div>
 
         <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px;">
+          <label class="sr-only" for="scenario-input">Describe a budget scenario to simulate</label>
           <input
             type="text"
             id="scenario-input"
@@ -182,9 +184,9 @@ export async function renderBudgetPage() {
       <div class="card" style="padding: 0; overflow: hidden;">
         <div style="padding: 20px 24px; border-bottom: 1px solid var(--clr-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
           <div>
-            <h3 class="serif" style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2px;">
+            <h2 class="serif" style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2px;">
               Category Allocations & Spent
-            </h3>
+            </h2>
             <p style="font-size: 0.825rem; color: var(--clr-text-muted); margin: 0;">
               Inline editable financial records. Live balance recalculates automatically.
             </p>
@@ -209,10 +211,10 @@ function renderCategoryRows(categories, currency) {
   if (categories.length === 0) {
     return `
       <div style="padding: 48px 24px; text-align: center; color: var(--clr-text-muted);">
-        <div style="font-size: 2rem; margin-bottom: 12px; color: var(--clr-accent);">
+        <div style="font-size: 2rem; margin-bottom: 12px; color: var(--clr-accent-foreground);">
           ${icons.budget(36)}
         </div>
-        <h4 class="serif" style="font-size: 1.15rem; color: var(--clr-text); margin-bottom: 6px;">No Budget Categories Yet</h4>
+        <h3 class="serif" style="font-size: 1.15rem; color: var(--clr-text); margin-bottom: 6px;">No Budget Categories Yet</h3>
         <p style="font-size: 0.85rem; max-width: 440px; margin: 0 auto 16px;">
           Use our AI auto-split engine to generate an industry-calibrated budget breakdown, or add custom categories manually.
         </p>
@@ -230,9 +232,10 @@ function renderCategoryRows(categories, currency) {
 
         <!-- Category Title & Badge -->
         <div>
-          <label style="font-size: 0.7rem; color: var(--clr-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.06em; display: block; margin-bottom: 4px;">Category Name</label>
+          <label for="category-name-${idx}" style="font-size: 0.7rem; color: var(--clr-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.06em; display: block; margin-bottom: 4px;">Category Name</label>
           <input
             type="text"
+            id="category-name-${idx}"
             class="input-cat-name form-control"
             value="${escapeHtml(cat.name)}"
             placeholder="Category Name"
@@ -243,12 +246,13 @@ function renderCategoryRows(categories, currency) {
         <!-- Allocated Input -->
         <div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <label style="font-size: 0.7rem; color: var(--clr-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.06em;">Allocated</label>
+            <label for="category-allocated-${idx}" style="font-size: 0.7rem; color: var(--clr-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.06em;">Allocated</label>
             <span class="badge badge-secondary" style="font-size: 0.6rem; padding: 1px 4px;">Estimated</span>
           </div>
           <div style="position: relative;">
             <input
               type="number"
+              id="category-allocated-${idx}"
               class="input-cat-allocated form-control tabular-nums"
               value="${cat.allocated || 0}"
               min="0"
@@ -261,11 +265,12 @@ function renderCategoryRows(categories, currency) {
         <!-- Spent Input -->
         <div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <label style="font-size: 0.7rem; color: var(--clr-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.06em;">Actual Spent</label>
+            <label for="category-spent-${idx}" style="font-size: 0.7rem; color: var(--clr-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.06em;">Actual Spent</label>
             <span style="font-size: 0.7rem; color: var(--clr-text-dim);">${currency}</span>
           </div>
           <input
             type="number"
+            id="category-spent-${idx}"
             class="input-cat-spent form-control tabular-nums"
             value="${cat.spent || 0}"
             min="0"
@@ -465,12 +470,12 @@ export function initBudgetPageEvents() {
 
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; border-bottom: 1px solid var(--clr-border); padding-bottom: 12px;">
             <div>
-              <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--clr-accent); font-weight: 700; letter-spacing: 0.1em;">
+              <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--clr-accent-foreground); font-weight: 700; letter-spacing: 0.1em;">
                 Scenario Simulation Results
               </div>
-              <h4 class="serif" style="font-weight: 700; font-size: 1.15rem; color: var(--clr-primary);">
+              <h3 class="serif" style="font-weight: 700; font-size: 1.15rem; color: var(--clr-primary);">
                 AI Re-Plan Diff & Impact Analysis
-              </h4>
+              </h3>
             </div>
 
             <div style="display: flex; gap: 8px;">
@@ -505,7 +510,7 @@ export function initBudgetPageEvents() {
                     <span style="color: var(--clr-text-muted); text-decoration: line-through;">
                       ${formatCurrency(a.old_allocated, currency)}
                     </span>
-                    <span style="color: var(--clr-accent); font-weight: 700;">
+                    <span style="color: var(--clr-accent-foreground); font-weight: 700;">
                       → ${formatCurrency(a.new_allocated, currency)}
                     </span>
                     <span class="badge ${isUp ? 'badge-success' : 'badge-warning'}" style="font-size: 0.65rem;">

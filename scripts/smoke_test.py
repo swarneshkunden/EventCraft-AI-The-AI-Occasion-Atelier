@@ -2,11 +2,13 @@
 import argparse
 import json
 import sys
+from http.client import HTTPMessage
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
 
-def get(url: str, timeout: int):
+def get(url: str, timeout: int) -> tuple[int, HTTPMessage, bytes]:
+    """Fetch a URL and return its status, headers, and body."""
     request = Request(url, headers={"User-Agent": "eventcraft-smoke-test"})
     with urlopen(request, timeout=timeout) as response:
         return response.status, response.headers, response.read()

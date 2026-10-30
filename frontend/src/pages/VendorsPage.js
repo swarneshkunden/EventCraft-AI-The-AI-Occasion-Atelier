@@ -25,6 +25,7 @@ export async function renderVendorsPage() {
     return `
       <div class="page-body">
         <div class="empty-state card">
+          <h1>Vendor Directory & AI Questions</h1>
           <p>Please select or create an event to manage vendors.</p>
         </div>
       </div>
@@ -47,9 +48,9 @@ export async function renderVendorsPage() {
       <div class="card" style="margin-bottom: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
           <div>
-            <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 4px;">
+            <h1 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 4px;">
               Vendor Directory & AI Questions
-            </h2>
+            </h1>
             <p style="font-size: 0.85rem; color: var(--clr-text-muted);">
               Track vendor contracts and generate tailored interview checklists with Gemini AI to avoid surprise costs.
             </p>
@@ -333,7 +334,7 @@ function openAddVendorModal(eventId, currency) {
       <div class="modal" role="dialog" aria-labelledby="modal-add-vendor-title" aria-modal="true">
         <div class="modal-header">
           <h3 class="modal-title" id="modal-add-vendor-title">🤝 Add Vendor to Directory</h3>
-          <button class="btn btn-ghost btn-sm" id="btn-close-add-vendor">✕</button>
+          <button class="btn btn-ghost btn-sm" id="btn-close-add-vendor" aria-label="Close add vendor dialog">✕</button>
         </div>
 
         <form id="form-add-vendor" class="modal-body">

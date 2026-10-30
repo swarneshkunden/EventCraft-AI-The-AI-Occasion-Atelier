@@ -19,6 +19,7 @@ export async function renderChatPage() {
     return `
       <div class="page-body">
         <div class="empty-state card">
+          <h1>AI Event Co-Pilot</h1>
           <p>Please select or create an event to talk with your AI Co-Pilot.</p>
         </div>
       </div>
@@ -45,9 +46,9 @@ export async function renderChatPage() {
       <!-- Top Bar with Ideas Generator Trigger -->
       <div style="padding: 14px 24px; border-bottom: 1px solid var(--clr-border); background: var(--clr-surface); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div>
-          <h2 style="font-size: 1.2rem; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+          <h1 style="font-size: 1.2rem; font-weight: 800; display: flex; align-items: center; gap: 8px;">
             <span>✨</span> AI Event Co-Pilot
-          </h2>
+          </h1>
           <p style="font-size: 0.8rem; color: var(--clr-text-muted);">
             Context-aware execution assistant with access to your budget, tasks, and vendors.
           </p>
@@ -64,15 +65,15 @@ export async function renderChatPage() {
       </div>
 
       <!-- Chat Messages Scroll Area -->
-      <div class="chat-messages" id="chat-messages-container">
+      <div class="chat-messages" id="chat-messages-container" aria-live="polite" aria-relevant="additions text">
         ${
           chatHistory.length === 0
             ? `
           <div style="text-align: center; margin: auto; max-width: 500px; color: var(--clr-text-muted);">
             <div style="font-size: 40px; margin-bottom: 12px;">🤖</div>
-            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--clr-text); margin-bottom: 6px;">
+            <h2 style="font-size: 1.1rem; font-weight: 700; color: var(--clr-text); margin-bottom: 6px;">
               Your Event Execution Co-Pilot
-            </h3>
+            </h2>
             <p style="font-size: 0.85rem; line-height: 1.6; margin-bottom: 20px;">
               Ask anything about scheduling, run-of-show timings, budget optimization, guest communication, or contingency plans.
             </p>
@@ -102,6 +103,7 @@ export async function renderChatPage() {
         <div class="chat-input-row">
           <textarea
             id="chat-textarea"
+            aria-label="Message to the event planning co-pilot"
             rows="2"
             placeholder="Ask your AI Co-Pilot anything about ${escapeHtml(event.title || event.name)}... (Shift+Enter for new line)"
           ></textarea>
@@ -161,6 +163,8 @@ export function initChatPageEvents() {
     const loadingBubble = document.createElement('div');
     loadingBubble.className = 'chat-bubble assistant';
     loadingBubble.id = 'ai-chat-loading';
+    loadingBubble.setAttribute('role', 'status');
+    loadingBubble.setAttribute('aria-live', 'polite');
     loadingBubble.innerHTML = `
       <div class="ai-loading">
         <span class="spinner spinner-sm"></span>
@@ -226,7 +230,7 @@ export function initChatPageEvents() {
       const rawText = ideas.raw || JSON.stringify(ideas, null, 2);
       ideasBox.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <h4 style="font-weight: 700; color: var(--clr-primary-light);">
+          <h2 style="font-weight: 700; color: var(--clr-primary-light);">
             🎨 Personalized Themes, Decor & Menu Inspiration
           </h4>
           <button id="btn-close-ideas" class="btn btn-ghost btn-sm" style="font-size: 0.8rem;">✕ Close</button>
