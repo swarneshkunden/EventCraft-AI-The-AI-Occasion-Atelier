@@ -16,14 +16,14 @@ from app.models.models import (
 from app.services.ai_service import call_ai, extract_json_from_response, is_ai_fallback
 from app.services.auth_service import get_current_user
 from app.services.crisis_intent_service import resolve_crisis_intent
-from app.services.event_service import get_event
-from app.services.plan_health_service import (
+from app.services.crisis_proposal_service import (
     accept_crisis_proposal,
-    calculate_plan_health,
     create_crisis_proposal,
     decline_crisis_proposal,
     undo_crisis_proposal,
 )
+from app.services.event_service import get_event
+from app.services.plan_health_service import calculate_plan_health
 from app.services.prompts import CRISIS_INTENT_SYSTEM, CRISIS_INTENT_USER
 from app.validators.schemas import (
     AcceptCrisisProposalRequest,

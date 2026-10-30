@@ -1,54 +1,16 @@
-"""Deterministic crisis intent parsing and response-option construction."""
-import re
+"""Deterministic crisis response-option construction."""
 from datetime import date, timedelta
 from typing import Any
 
 from fastapi import HTTPException
 
 from app.models.models import BudgetCategory, Event, Task, TaskStatus, Vendor
+from app.services.plan_utils import enum_value, parse_iso_date
 from app.validators.schemas import CrisisIntent
 
 
-def _value(value: Any) -> Any:
-    """Return an enum's value or the original value."""
-    return value.value if hasattr(value, "value") else value
-
-def _date(value: str | None) -> date | None:
-    """Parse an ISO date, returning None when the value is invalid."""
-    if not value:
-        return None
-    try:
-        return date.fromisoformat(value)
-    except (TypeError, ValueError):
-        return None
-
-def parse_known_crisis(description: str, event_date: str | None) -> CrisisIntent | None:
-    """Recognize supported changes with deterministic rules before any AI call."""
-    text = description.casefold()
-    if "cater" in text and re.search(r"\b(cancel(?:ed|led)?|withdrawn|dropped)\b", text):
-        return CrisisIntent(kind="caterer_cancelled")
-    if re.search(r"\b(rain|raining|weather|storm|outdoor)\b", text):
-        return CrisisIntent(kind="weather_risk")
-
-    if re.search(r"\b(guest|guests|attendee|attendees|headcount|people)\b", text):
-        range_match = re.search(r"\bfrom\s+(\d+)\s+to\s+(\d+)\b", text)
-        target_match = re.search(r"\bto\s+(\d+)\b", text)
-        if range_match or target_match:
-            target_count = int(range_match.group(2) if range_match else target_match.group(1))
-            return CrisisIntent(kind="guest_count_change", new_guest_count=target_count)
-
-    if event_date and re.search(r"\b(move|moved|advance|advanced|earlier|up)\b", text):
-        match = re.search(r"\b(\d{1,3})\s*(day|days|week|weeks|month|months)\b", text)
-        if match:
-            amount = int(match.group(1))
-            unit = match.group(2)
-            days = amount * (30 if unit.startswith("month") else 7 if unit.startswith("week") else 1)
-            if 1 <= days <= 365:
-                return CrisisIntent(kind="date_advanced", days_advanced=days)
-    return None
-
 def _deadline(event: Event, days_before: int) -> str:
-    target = _date(event.event_date)
+    target = parse_iso_date(event.event_date)
     candidate = target - timedelta(days=days_before) if target else date.today() + timedelta(days=1)
     return max(candidate, date.today()).isoformat()
 
@@ -179,8 +141,8 @@ def _date_advanced_options(
 ) -> list[dict[str, Any]]:
     """Create alternatives for an earlier event date."""
     today = date.today()
-    open_tasks = [task for task in tasks if _value(task.status) != TaskStatus.completed.value]
-    old_date = _date(event.event_date)
+    open_tasks = [task for task in tasks if enum_value(task.status) != TaskStatus.completed.value]
+    old_date = parse_iso_date(event.event_date)
 
     if not old_date or not intent.days_advanced:
         raise HTTPException(status_code=400, detail="A valid event date is required for this change.")
@@ -198,7 +160,7 @@ def _date_advanced_options(
     shift_diff = []
 
     for task in open_tasks:
-        due = _date(task.due_date)
+        due = parse_iso_date(task.due_date)
         if due:
             shifted = due - timedelta(days=intent.days_advanced)
             shifts.append({"id": task.id, "due_date": shifted.isoformat()})
@@ -264,7 +226,7 @@ def _caterer_cancelled_options(
     vendors: list[Vendor],
 ) -> list[dict[str, Any]]:
     """Create alternatives after a caterer cancels."""
-    caterers = [vendor for vendor in vendors if _value(vendor.vendor_type) == "caterer"]
+    caterers = [vendor for vendor in vendors if enum_value(vendor.vendor_type) == "caterer"]
 
     vendor_updates = [
         {"id": vendor.id, "is_selected": False}

@@ -12,7 +12,8 @@ from app.models.models import (
     Task,
     Vendor,
 )
-from app.services.crisis_options_service import _value, build_crisis_options
+from app.services.crisis_options_service import build_crisis_options
+from app.services.plan_utils import enum_value
 from app.validators.schemas import CrisisIntent
 
 
@@ -44,7 +45,7 @@ def capture_event_state(
         ),
         "tasks": sorted(
             [
-                {"id": item.id, "due_date": item.due_date, "status": str(_value(item.status))}
+                {"id": item.id, "due_date": item.due_date, "status": str(enum_value(item.status))}
                 for item in tasks
             ],
             key=lambda item: item["id"],

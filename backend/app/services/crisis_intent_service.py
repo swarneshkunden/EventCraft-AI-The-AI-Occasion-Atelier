@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from app.services.plan_health_service import parse_known_crisis
+from app.services.crisis_rules import parse_known_crisis
 from app.validators.schemas import CrisisIntent
 
 log = logging.getLogger(__name__)

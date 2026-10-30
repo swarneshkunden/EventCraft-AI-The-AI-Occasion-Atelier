@@ -1,6 +1,6 @@
-"""Deterministic plan-health scoring and reviewable crisis proposals."""
+"""Deterministic, explainable plan-health scoring."""
 from datetime import date
-from typing import Any, TypedDict
+from typing import TypedDict
 
 from app.models.models import (
     BudgetCategory,
@@ -8,19 +8,8 @@ from app.models.models import (
     TaskStatus,
     Vendor,
 )
-from app.services.crisis_options_service import (
-    _date,
-    _value,
-    build_crisis_options,
-    parse_known_crisis,
-)
-from app.services.crisis_proposal_service import (
-    accept_crisis_proposal,
-    capture_event_state,
-    create_crisis_proposal,
-    decline_crisis_proposal,
-    undo_crisis_proposal,
-)
+from app.services.plan_utils import enum_value, parse_iso_date
+
 
 class PlanHealthDeduction(TypedDict):
     key: str
@@ -151,7 +140,7 @@ def _date_deductions(
 ) -> tuple[int | None, list[PlanHealthDeduction]]:
     """Describe past dates or deadline pressure and return days remaining."""
     deductions: list[PlanHealthDeduction] = []
-    target_date = _date(event_date)
+    target_date = parse_iso_date(event_date)
     if target_date is None:
         return None, deductions
     days_until = (target_date - today).days
@@ -183,7 +172,7 @@ def _venue_deductions(
     undersized_venues = [
         vendor
         for vendor in vendors
-        if _value(vendor.vendor_type) == "venue"
+        if enum_value(vendor.vendor_type) == "venue"
         and vendor.guests_covered is not None
         and vendor.guests_covered < guest_count
     ]
@@ -245,12 +234,12 @@ def calculate_plan_health(
     spent = round(sum(float(category.spent or 0) for category in categories), 2)
     allocated = round(sum(float(category.allocated or 0) for category in categories), 2)
     total_budget = round(float(total_budget), 2)
-    incomplete = [task for task in tasks if _value(task.status) != TaskStatus.completed.value]
+    incomplete = [task for task in tasks if enum_value(task.status) != TaskStatus.completed.value]
     overdue = [
         task for task in incomplete
-        if (due := _date(task.due_date)) is not None and due < today
+        if (due := parse_iso_date(task.due_date)) is not None and due < today
     ]
-    blocked = [task for task in tasks if _value(task.status) == TaskStatus.blocked.value]
+    blocked = [task for task in tasks if enum_value(task.status) == TaskStatus.blocked.value]
     missing_quotes = [vendor for vendor in vendors if vendor.quoted_price is None]
     deductions = _budget_deductions(total_budget, spent, allocated)
     deductions.extend(_task_deductions(tasks, incomplete, overdue, blocked, missing_quotes))
