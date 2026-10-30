@@ -3,6 +3,7 @@ import logging
 import time
 from collections.abc import Generator
 from contextlib import contextmanager
+from typing import Any
 
 from psycopg import OperationalError as PsycopgOperationalError
 from sqlalchemy import create_engine, event
@@ -41,7 +42,13 @@ engine = create_engine(settings.DATABASE_URL, **engine_options)
 
 if is_postgresql:
     @event.listens_for(engine, "do_connect")
-    def _connect_with_retry(dialect, _connection_record, cargs, cparams):
+    def _connect_with_retry(
+        dialect: Any,
+        _connection_record: Any,
+        cargs: tuple[Any, ...],
+        cparams: dict[str, Any],
+    ) -> Any:
+        """Retry transient PostgreSQL connection failures with backoff."""
         for attempt in range(settings.DB_CONNECT_RETRIES):
             try:
                 return dialect.connect(*cargs, **cparams)
@@ -62,7 +69,11 @@ if is_postgresql:
 
 if settings.DATABASE_URL.startswith("sqlite"):
     @event.listens_for(engine, "connect")
-    def _set_sqlite_pragmas(dbapi_connection, _connection_record):
+    def _set_sqlite_pragmas(
+        dbapi_connection: Any,
+        _connection_record: Any,
+    ) -> None:
+        """Enable WAL journaling and foreign-key enforcement for SQLite."""
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA journal_mode=WAL")
         cursor.execute("PRAGMA foreign_keys=ON")

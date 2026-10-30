@@ -1,33 +1,35 @@
 """Plan-health scoring and user-approved crisis changes."""
-import json
-import logging
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
 from app.config.settings import get_settings
-from app.models.models import BudgetCategory, PlanChangeProposal, Task, User, Vendor
+from app.models.models import (
+    BudgetCategory,
+    Event,
+    PlanChangeProposal,
+    Task,
+    User,
+    Vendor,
+)
 from app.services.ai_service import call_ai, extract_json_from_response, is_ai_fallback
 from app.services.auth_service import get_current_user
+from app.services.crisis_intent_service import resolve_crisis_intent
 from app.services.event_service import get_event
 from app.services.plan_health_service import (
     accept_crisis_proposal,
     calculate_plan_health,
     create_crisis_proposal,
     decline_crisis_proposal,
-    parse_known_crisis,
     undo_crisis_proposal,
 )
 from app.services.prompts import CRISIS_INTENT_SYSTEM, CRISIS_INTENT_USER
 from app.validators.schemas import (
     AcceptCrisisProposalRequest,
-    CrisisIntent,
     CrisisRequest,
 )
 
-log = logging.getLogger(__name__)
 settings = get_settings()
 
 router = APIRouter(
@@ -36,7 +38,12 @@ router = APIRouter(
 )
 
 
-def _event_data(event_id: str, user_id: str, db: Session):
+def _event_data(
+    event_id: str,
+    user_id: str,
+    db: Session,
+) -> tuple[Event, list[BudgetCategory], list[Task], list[Vendor]]:
+    """Load an owned event and its plan-health records."""
     event = get_event(event_id, user_id, db)
     categories = db.query(BudgetCategory).filter(BudgetCategory.event_id == event_id).all()
     tasks = db.query(Task).filter(Task.event_id == event_id).all()
@@ -50,6 +57,7 @@ async def get_plan_health(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
+    """Return the event's explainable planning-health assessment."""
     event, categories, tasks, vendors = _event_data(event_id, current_user.id, db)
     return calculate_plan_health(
         event.total_budget,
@@ -68,26 +76,18 @@ async def propose_crisis_response(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
+    """Create reviewable response options for a described disruption."""
     event = get_event(event_id, current_user.id, db)
-    intent = parse_known_crisis(body.description, event.event_date)
-    ai_used = False
-
-    if intent is None and settings.GEMINI_API_KEY:
-        prompt = CRISIS_INTENT_USER.format(
-            description_json=json.dumps({"scenario": body.description}, ensure_ascii=True)
-        )
-        ai_text = await call_ai(CRISIS_INTENT_SYSTEM, prompt, use_cache=False)
-        if not is_ai_fallback(ai_text):
-            raw = extract_json_from_response(ai_text)
-            if raw is not None:
-                try:
-                    intent = CrisisIntent.model_validate(raw)
-                    ai_used = True
-                except ValidationError as exc:
-                    log.warning("Crisis intent schema validation failed: %s", type(exc).__name__)
-
-    if intent is None:
-        intent = CrisisIntent(kind="general")
+    intent, ai_used = await resolve_crisis_intent(
+        body.description,
+        event.event_date,
+        api_key=settings.GEMINI_API_KEY,
+        ai_call=call_ai,
+        json_extractor=extract_json_from_response,
+        fallback_check=is_ai_fallback,
+        system_prompt=CRISIS_INTENT_SYSTEM,
+        user_prompt_template=CRISIS_INTENT_USER,
+    )
 
     proposal = create_crisis_proposal(
         event,
@@ -126,14 +126,9 @@ async def accept_proposal(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
+    """Accept an event owner-selected crisis proposal option."""
     get_event(event_id, current_user.id, db)
-    proposal = db.query(PlanChangeProposal).filter(
-        PlanChangeProposal.id == proposal_id,
-        PlanChangeProposal.event_id == event_id,
-        PlanChangeProposal.owner_id == current_user.id,
-    ).first()
-    if not proposal:
-        raise HTTPException(status_code=404, detail="Proposal not found.")
+    proposal = _get_owned_proposal(event_id, proposal_id, current_user.id, db)
     accept_crisis_proposal(proposal, body.option_id, db)
     db.commit()
     return {
@@ -150,14 +145,9 @@ async def undo_proposal(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
+    """Undo an accepted crisis proposal if the event has not since changed."""
     get_event(event_id, current_user.id, db)
-    proposal = db.query(PlanChangeProposal).filter(
-        PlanChangeProposal.id == proposal_id,
-        PlanChangeProposal.event_id == event_id,
-        PlanChangeProposal.owner_id == current_user.id,
-    ).first()
-    if not proposal:
-        raise HTTPException(status_code=404, detail="Proposal not found.")
+    proposal = _get_owned_proposal(event_id, proposal_id, current_user.id, db)
     undo_crisis_proposal(proposal, db)
     db.commit()
     return {"status": proposal.status, "undo_available": False}
@@ -170,14 +160,26 @@ async def decline_proposal(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
+    """Decline a crisis proposal without changing the event plan."""
     get_event(event_id, current_user.id, db)
-    proposal = db.query(PlanChangeProposal).filter(
-        PlanChangeProposal.id == proposal_id,
-        PlanChangeProposal.event_id == event_id,
-        PlanChangeProposal.owner_id == current_user.id,
-    ).first()
-    if not proposal:
-        raise HTTPException(status_code=404, detail="Proposal not found.")
+    proposal = _get_owned_proposal(event_id, proposal_id, current_user.id, db)
     decline_crisis_proposal(proposal)
     db.commit()
     return {"status": proposal.status}
+
+
+def _get_owned_proposal(
+    event_id: str,
+    proposal_id: str,
+    owner_id: str,
+    db: Session,
+) -> PlanChangeProposal:
+    """Fetch a proposal scoped to its event and owner or raise not found."""
+    proposal = db.query(PlanChangeProposal).filter(
+        PlanChangeProposal.id == proposal_id,
+        PlanChangeProposal.event_id == event_id,
+        PlanChangeProposal.owner_id == owner_id,
+    ).first()
+    if proposal is None:
+        raise HTTPException(status_code=404, detail="Proposal not found.")
+    return proposal
