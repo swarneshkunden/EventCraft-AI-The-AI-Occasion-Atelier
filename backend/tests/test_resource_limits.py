@@ -1,4 +1,5 @@
 """Tests for bounded in-process caches and rate-limit state."""
+
 import asyncio
 
 import pytest
@@ -28,8 +29,10 @@ def test_ai_cache_expires_entries(monkeypatch):
     assert ai_service._get_cached("prompt") is None
     assert "prompt" not in ai_service._cache
 
+
 def test_ai_cache_evicts_least_recently_used_entry(monkeypatch):
     from app.services import ai_service
+
     monkeypatch.setattr(ai_service.settings, "AI_CACHE_MAX_ENTRIES", 2)
     monkeypatch.setattr(ai_service.settings, "AI_CACHE_MAX_ENTRIES", 2)
 

@@ -2,6 +2,7 @@
 Application configuration loaded from environment variables.
 All security-sensitive defaults are deliberately absent – they must be set in .env.
 """
+
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal

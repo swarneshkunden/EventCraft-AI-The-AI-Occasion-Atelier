@@ -3,6 +3,7 @@
 Revision ID: 51d2a6f89c43
 Revises: 0f5a78aeb321
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -77,9 +78,7 @@ def _alter_json_columns(to_jsonb: bool) -> None:
                 existing_type=postgresql.JSONB() if not to_jsonb else sa.JSON(),
                 type_=postgresql.JSONB() if to_jsonb else sa.JSON(),
                 existing_nullable=column == "after_state",
-                postgresql_using=(
-                    f'"{column}"::jsonb' if to_jsonb else f'"{column}"::json'
-                ),
+                postgresql_using=(f'"{column}"::jsonb' if to_jsonb else f'"{column}"::json'),
             )
 
 

@@ -1,4 +1,5 @@
 """Database URL configuration and Neon TLS requirements."""
+
 import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.exc import IntegrityError
@@ -15,8 +16,7 @@ def test_postgresql_url_selects_psycopg_and_keeps_query_options():
     url = "postgresql://app:secret@localhost/events?sslmode=require&connect_timeout=5"
 
     assert normalize_database_url(url) == (
-        "postgresql+psycopg://app:secret@localhost/events"
-        "?sslmode=require&connect_timeout=5"
+        "postgresql+psycopg://app:secret@localhost/events?sslmode=require&connect_timeout=5"
     )
 
 
@@ -30,12 +30,10 @@ def test_neon_runtime_and_direct_urls_require_ssl():
     settings = Settings(
         APP_SECRET_KEY=_SECRET,
         DATABASE_URL=(
-            "postgresql://app:secret@ep-example-pooler.us-east-1.aws.neon.tech/db"
-            "?sslmode=require"
+            "postgresql://app:secret@ep-example-pooler.us-east-1.aws.neon.tech/db?sslmode=require"
         ),
         DATABASE_URL_DIRECT=(
-            "postgresql://app:secret@ep-example.us-east-1.aws.neon.tech/db"
-            "?sslmode=require"
+            "postgresql://app:secret@ep-example.us-east-1.aws.neon.tech/db?sslmode=require"
         ),
     )
     assert settings.DATABASE_URL.startswith("postgresql+psycopg://")
@@ -49,8 +47,7 @@ def test_production_neon_runtime_requires_pooled_hostname():
             APP_ENV="production",
             APP_SECRET_KEY=_SECRET,
             DATABASE_URL=(
-                "postgresql://app:secret@ep-example.us-east-1.aws.neon.tech/db"
-                "?sslmode=require"
+                "postgresql://app:secret@ep-example.us-east-1.aws.neon.tech/db?sslmode=require"
             ),
             ALLOWED_ORIGINS="https://eventcraft.example",
         )
@@ -186,9 +183,9 @@ def test_sqlite_concurrent_event_edit_rejects_stale_write(tmp_path):
             with pytest.raises(StaleDataError):
                 second_session.flush()
             second_session.rollback()
-            assert second_session.scalar(
-                select(Event.total_budget).where(Event.id == event_id)
-            ) == 125
+            assert (
+                second_session.scalar(select(Event.total_budget).where(Event.id == event_id)) == 125
+            )
         finally:
             first_session.close()
             second_session.close()

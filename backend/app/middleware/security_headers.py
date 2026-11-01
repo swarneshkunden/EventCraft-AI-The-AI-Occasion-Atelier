@@ -2,6 +2,7 @@
 Security headers middleware.
 Adds CSP, X-Frame-Options, and other hardening headers to every response.
 """
+
 import uuid
 from collections.abc import Callable
 
@@ -29,9 +30,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
         if request.url.path == "/" or request.url.path.startswith(("/src/", "/static/", "/js/")):
             response.headers["Cache-Control"] = "no-cache"
-        response.headers[
-            "Content-Security-Policy"
-        ] = (
+        response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
             "script-src 'self'; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; "

@@ -2,6 +2,7 @@
 Event service – CRUD and business logic for events, budget, tasks, vendors, guests.
 All DB writes use parameterized queries through the ORM.
 """
+
 import logging
 from datetime import UTC, datetime
 from typing import TypeVar
@@ -39,6 +40,7 @@ RecordT = TypeVar("RecordT")
 
 # ── Authorization guard ───────────────────────────────────────────────────────
 
+
 def _assert_owner(event: Event | None, user_id: str) -> Event:
     if not event or event.owner_id != user_id:
         raise NotFoundError("Event not found")
@@ -53,15 +55,14 @@ def _get_owned(
     label: str,
 ) -> RecordT:
     """Fetch a record scoped to its event, or raise a consistent 404."""
-    record = db.query(model).filter(
-        model.id == resource_id, model.event_id == event_id
-    ).first()
+    record = db.query(model).filter(model.id == resource_id, model.event_id == event_id).first()
     if not record:
         raise NotFoundError(f"{label} not found")
     return record
 
 
 # ── Events ────────────────────────────────────────────────────────────────────
+
 
 def create_event(user_id: str, data: EventCreateRequest, db: Session) -> Event:
     event = Event(
@@ -84,12 +85,7 @@ def get_event(event_id: str, user_id: str, db: Session) -> Event:
 
 
 def list_events(user_id: str, db: Session) -> list[Event]:
-    return (
-        db.query(Event)
-        .filter(Event.owner_id == user_id)
-        .order_by(Event.created_at.desc())
-        .all()
-    )
+    return db.query(Event).filter(Event.owner_id == user_id).order_by(Event.created_at.desc()).all()
 
 
 def update_event(event_id: str, user_id: str, data: EventUpdateRequest, db: Session) -> Event:
@@ -114,6 +110,7 @@ def delete_event(event_id: str, user_id: str, db: Session) -> None:
 
 
 # ── Budget ────────────────────────────────────────────────────────────────────
+
 
 def set_budget_categories(
     event_id: str, user_id: str, categories: list[BudgetCategoryCreate], db: Session
@@ -164,7 +161,10 @@ def update_budget_category(
 
 # ── Tasks ─────────────────────────────────────────────────────────────────────
 
-def bulk_create_tasks(event_id: str, user_id: str, task_dicts: list[dict], db: Session) -> list[Task]:
+
+def bulk_create_tasks(
+    event_id: str, user_id: str, task_dicts: list[dict], db: Session
+) -> list[Task]:
     get_event(event_id, user_id, db)
     # Clear existing AI-generated tasks before bulk create
     db.query(Task).filter(Task.event_id == event_id).delete()
@@ -250,15 +250,19 @@ def compute_task_readiness(tasks: list[Task]) -> list[dict]:
     for t in tasks:
         deps = t.depends_on or []
         unmet = [d for d in deps if d not in completed_titles]
-        result.append({
-            "task": t,
-            "is_ready": len(unmet) == 0 and t.status not in (TaskStatus.completed, TaskStatus.blocked),
-            "blocked_by": unmet,
-        })
+        result.append(
+            {
+                "task": t,
+                "is_ready": len(unmet) == 0
+                and t.status not in (TaskStatus.completed, TaskStatus.blocked),
+                "blocked_by": unmet,
+            }
+        )
     return result
 
 
 # ── Vendors ───────────────────────────────────────────────────────────────────
+
 
 def create_vendor(event_id: str, user_id: str, data: VendorCreate, db: Session) -> Vendor:
     get_event(event_id, user_id, db)
@@ -314,6 +318,7 @@ def set_vendor_ai_data(vendor: Vendor, checklist: list, questions: list, db: Ses
 
 
 # ── Guests ────────────────────────────────────────────────────────────────────
+
 
 def create_guest(event_id: str, user_id: str, data: GuestCreate, db: Session) -> Guest:
     get_event(event_id, user_id, db)
@@ -380,6 +385,7 @@ def _sync_guest_count(event_id: str, db: Session) -> None:
 
 # ── Chat ──────────────────────────────────────────────────────────────────────
 
+
 def save_chat_message(event_id: str, role: str, content: str, db: Session) -> ChatMessage:
     msg = ChatMessage(event_id=event_id, role=role, content=content)
     db.add(msg)
@@ -387,7 +393,9 @@ def save_chat_message(event_id: str, role: str, content: str, db: Session) -> Ch
     return msg
 
 
-def get_chat_history(event_id: str, user_id: str, db: Session, limit: int = 50) -> list[ChatMessage]:
+def get_chat_history(
+    event_id: str, user_id: str, db: Session, limit: int = 50
+) -> list[ChatMessage]:
     get_event(event_id, user_id, db)
     return (
         db.query(ChatMessage)

@@ -1,4 +1,5 @@
 """Integration tests for AI-backed event routes with the external provider stubbed."""
+
 import json
 
 from app.services.ai_service import _AI_FALLBACK
@@ -28,9 +29,7 @@ def test_chat_persists_user_and_assistant_messages(auth_client, sample_event, mo
     assert history.json()[0]["content"] == "What should I plan first?"
 
 
-def test_chat_ideas_validate_and_return_structured_output(
-    auth_client, sample_event, monkeypatch
-):
+def test_chat_ideas_validate_and_return_structured_output(auth_client, sample_event, monkeypatch):
     expected = {"themes": [], "decor": [], "menu": [], "activities": []}
     _mock_ai(monkeypatch, "chat", json.dumps(expected))
 
@@ -51,12 +50,14 @@ def test_chat_ideas_reject_malformed_ai_output(auth_client, sample_event, monkey
 
 
 def test_budget_split_is_clamped_to_event_budget(auth_client, sample_event, monkeypatch):
-    ai_response = json.dumps({
-        "categories": [
-            {"name": "Venue", "allocated": 400000},
-            {"name": "Catering", "allocated": 400000},
-        ]
-    })
+    ai_response = json.dumps(
+        {
+            "categories": [
+                {"name": "Venue", "allocated": 400000},
+                {"name": "Catering", "allocated": 400000},
+            ]
+        }
+    )
     _mock_ai(monkeypatch, "budget", ai_response)
 
     response = auth_client.post(f"/api/events/{sample_event['id']}/budget/ai-split")
@@ -67,16 +68,18 @@ def test_budget_split_is_clamped_to_event_budget(auth_client, sample_event, monk
 
 
 def test_task_generation_validates_and_stores_tasks(auth_client, sample_event, monkeypatch):
-    ai_response = json.dumps({
-        "tasks": [
-            {
-                "title": "Confirm the venue",
-                "category": "venue",
-                "priority": 1,
-                "due_date": "2027-01-01",
-            }
-        ]
-    })
+    ai_response = json.dumps(
+        {
+            "tasks": [
+                {
+                    "title": "Confirm the venue",
+                    "category": "venue",
+                    "priority": 1,
+                    "due_date": "2027-01-01",
+                }
+            ]
+        }
+    )
     _mock_ai(monkeypatch, "tasks", ai_response)
 
     response = auth_client.post(f"/api/events/{sample_event['id']}/tasks/generate")
@@ -87,9 +90,7 @@ def test_task_generation_validates_and_stores_tasks(auth_client, sample_event, m
     assert response.json()["tasks"][0]["is_ready"] is True
 
 
-def test_vendor_questions_validate_and_persist_ai_data(
-    auth_client, sample_event, monkeypatch
-):
+def test_vendor_questions_validate_and_persist_ai_data(auth_client, sample_event, monkeypatch):
     event_id = sample_event["id"]
     created = auth_client.post(
         f"/api/events/{event_id}/vendors",
@@ -99,10 +100,12 @@ def test_vendor_questions_validate_and_persist_ai_data(
     _mock_ai(
         monkeypatch,
         "vendors",
-        json.dumps({
-            "checklist": ["Confirm vegetarian options"],
-            "questions": ["Can you serve 100 guests?"],
-        }),
+        json.dumps(
+            {
+                "checklist": ["Confirm vegetarian options"],
+                "questions": ["Can you serve 100 guests?"],
+            }
+        ),
     )
 
     response = auth_client.post(
@@ -115,9 +118,7 @@ def test_vendor_questions_validate_and_persist_ai_data(
     assert response.json()["ai_questions"] == ["Can you serve 100 guests?"]
 
 
-def test_ai_routes_fall_back_when_provider_is_unavailable(
-    auth_client, sample_event, monkeypatch
-):
+def test_ai_routes_fall_back_when_provider_is_unavailable(auth_client, sample_event, monkeypatch):
     _mock_ai(monkeypatch, "tasks", _AI_FALLBACK)
 
     response = auth_client.post(f"/api/events/{sample_event['id']}/tasks/generate")
@@ -129,9 +130,7 @@ def test_ai_routes_fall_back_when_provider_is_unavailable(
     assert all(task["title"] for task in tasks)
 
 
-def test_chat_ideas_fall_back_when_provider_is_unavailable(
-    auth_client, sample_event, monkeypatch
-):
+def test_chat_ideas_fall_back_when_provider_is_unavailable(auth_client, sample_event, monkeypatch):
     _mock_ai(monkeypatch, "chat", _AI_FALLBACK)
 
     response = auth_client.get(f"/api/events/{sample_event['id']}/chat/ideas")

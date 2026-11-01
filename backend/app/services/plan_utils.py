@@ -1,4 +1,5 @@
 """Small, dependency-free helpers shared by planning services."""
+
 from datetime import date
 from typing import Any
 

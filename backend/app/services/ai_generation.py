@@ -4,6 +4,7 @@ Every AI feature that expects JSON goes through ``generate_model`` so retries,
 fallback detection, JSON extraction, and schema validation behave identically
 and are fixed in exactly one place.
 """
+
 import logging
 from collections.abc import Callable
 from typing import TypeVar

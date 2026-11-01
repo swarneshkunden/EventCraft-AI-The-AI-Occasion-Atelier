@@ -1,4 +1,5 @@
 """Guest routes – CRUD, CSV import, pagination."""
+
 import logging
 
 from fastapi import APIRouter, Depends, File, Query, UploadFile

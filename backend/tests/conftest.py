@@ -1,4 +1,5 @@
 """Shared pytest fixtures."""
+
 import os
 
 import pytest
@@ -13,13 +14,9 @@ os.environ.setdefault("APP_ENV", "test")
 if os.environ.get("TEST_DATABASE_URL"):
     test_database_url = os.environ["TEST_DATABASE_URL"].strip()
     if test_database_url.startswith("postgresql://"):
-        test_database_url = test_database_url.replace(
-            "postgresql://", "postgresql+psycopg://", 1
-        )
+        test_database_url = test_database_url.replace("postgresql://", "postgresql+psycopg://", 1)
     elif test_database_url.startswith("postgres://"):
-        test_database_url = test_database_url.replace(
-            "postgres://", "postgresql+psycopg://", 1
-        )
+        test_database_url = test_database_url.replace("postgres://", "postgresql+psycopg://", 1)
     os.environ["DATABASE_URL"] = test_database_url
     os.environ["DATABASE_URL_DIRECT"] = os.environ["DATABASE_URL"]
 else:
@@ -43,11 +40,13 @@ else:
 
 TEST_ENGINE = create_engine(TEST_DATABASE_URL, **test_engine_options)
 if TEST_DATABASE_URL.startswith("sqlite"):
+
     @event.listens_for(TEST_ENGINE, "connect")
     def _enable_test_foreign_keys(dbapi_connection, _connection_record):
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
+
 
 TestSessionLocal = sessionmaker(bind=TEST_ENGINE, autocommit=False, autoflush=False)
 
@@ -83,16 +82,22 @@ def client(db):
 @pytest.fixture
 def registered_user(client):
     """Create a user and return their auth headers."""
-    resp = client.post("/api/auth/signup", json={
-        "email": "test@example.com",
-        "password": "Test@1234",
-        "display_name": "Test User",
-    })
+    resp = client.post(
+        "/api/auth/signup",
+        json={
+            "email": "test@example.com",
+            "password": "Test@1234",
+            "display_name": "Test User",
+        },
+    )
     assert resp.status_code == 202
-    login = client.post("/api/auth/login", json={
-        "email": "test@example.com",
-        "password": "Test@1234",
-    })
+    login = client.post(
+        "/api/auth/login",
+        json={
+            "email": "test@example.com",
+            "password": "Test@1234",
+        },
+    )
     assert login.status_code == 200
     return {"email": "test@example.com", "password": "Test@1234"}
 
@@ -105,23 +110,26 @@ def auth_client(client, registered_user):
 
 @pytest.fixture
 def sample_event(auth_client):
-    resp = auth_client.post("/api/events", json={
-        "name": "Test Wedding",
-        "event_type": "wedding",
-        "profile": {
-            "occasion": "Wedding",
-            "budget": 500000,
-            "guest_count": 100,
-            "event_date": "2027-06-15",
-            "experience_level": "moderate",
-            "priorities": ["catering"],
-            "must_haves": ["flowers"],
-            "atmosphere": "festive",
-            "age_groups": ["adults"],
-            "cultural_preferences": "",
-            "accessibility_needs": "",
-            "venue_limits": "",
-        }
-    })
+    resp = auth_client.post(
+        "/api/events",
+        json={
+            "name": "Test Wedding",
+            "event_type": "wedding",
+            "profile": {
+                "occasion": "Wedding",
+                "budget": 500000,
+                "guest_count": 100,
+                "event_date": "2027-06-15",
+                "experience_level": "moderate",
+                "priorities": ["catering"],
+                "must_haves": ["flowers"],
+                "atmosphere": "festive",
+                "age_groups": ["adults"],
+                "cultural_preferences": "",
+                "accessibility_needs": "",
+                "venue_limits": "",
+            },
+        },
+    )
     assert resp.status_code == 201
     return resp.json()

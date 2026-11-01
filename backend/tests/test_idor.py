@@ -4,6 +4,7 @@ Every child resource lookup is scoped to both the event and the caller, so the
 correct answer for an intruder is always 404 (never 403/500, which would leak
 whether the resource exists).
 """
+
 import pytest
 
 
@@ -40,9 +41,7 @@ def owner_resources(auth_client, sample_event):
     assert budget.status_code == 200
     cat_id = auth_client.get(f"/api/events/{event_id}/budget").json()[0]["id"]
 
-    task = auth_client.post(
-        f"/api/events/{event_id}/tasks", json={"title": "Book the venue"}
-    )
+    task = auth_client.post(f"/api/events/{event_id}/tasks", json={"title": "Book the venue"})
     assert task.status_code == 201
 
     vendor = auth_client.post(
@@ -51,9 +50,7 @@ def owner_resources(auth_client, sample_event):
     )
     assert vendor.status_code == 201
 
-    guest = auth_client.post(
-        f"/api/events/{event_id}/guests", json={"name": "Owner Guest"}
-    )
+    guest = auth_client.post(f"/api/events/{event_id}/guests", json={"name": "Owner Guest"})
     assert guest.status_code == 201
 
     return {

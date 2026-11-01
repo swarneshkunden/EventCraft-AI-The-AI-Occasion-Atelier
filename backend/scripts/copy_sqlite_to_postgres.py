@@ -1,4 +1,5 @@
 """Copy application rows from SQLite to an empty PostgreSQL database."""
+
 import argparse
 import os
 import sys
@@ -52,18 +53,16 @@ def _schema_tables(connection: Connection, *, source: bool) -> None:
         )
 
     for table in APPLICATION_TABLES:
-        actual_columns = {
-            column["name"] for column in inspect(connection).get_columns(table.name)
-        }
+        actual_columns = {column["name"] for column in inspect(connection).get_columns(table.name)}
         expected_columns = {column.name for column in table.columns}
         if actual_columns != expected_columns:
             raise ValueError(f"Column layout does not match for table {table.name}.")
 
     if not source:
         try:
-            revisions = connection.execute(
-                text("SELECT version_num FROM alembic_version")
-            ).scalars().all()
+            revisions = (
+                connection.execute(text("SELECT version_num FROM alembic_version")).scalars().all()
+            )
         except SQLAlchemyError as exc:
             raise ValueError("Target must be migrated to the current Alembic head.") from exc
         if revisions != [EXPECTED_ALEMBIC_HEAD]:
@@ -79,9 +78,7 @@ def _lock_target_tables(connection: Connection) -> None:
 
 def _table_counts(connection: Connection) -> dict[str, int]:
     return {
-        table.name: connection.execute(
-            select(func.count()).select_from(table)
-        ).scalar_one()
+        table.name: connection.execute(select(func.count()).select_from(table)).scalar_one()
         for table in APPLICATION_TABLES
     }
 
@@ -109,14 +106,11 @@ def _copy_rows(source: Connection, target: Connection) -> dict[str, int]:
     nonempty = {name: count for name, count in target_counts.items() if count}
     if nonempty:
         raise ValueError(
-            "Refusing to copy into a non-empty target; rows exist in "
-            f"{sorted(nonempty)}."
+            f"Refusing to copy into a non-empty target; rows exist in {sorted(nonempty)}."
         )
 
     for table in APPLICATION_TABLES:
-        rows = source.execution_options(stream_results=True).execute(
-            select(table)
-        ).mappings()
+        rows = source.execution_options(stream_results=True).execute(select(table)).mappings()
         while batch := rows.fetchmany(BATCH_SIZE):
             target.execute(
                 table.insert(),
@@ -134,8 +128,7 @@ def copy_database(source_value: str, target_value: str, confirmed_host: str) -> 
     target_url = _postgres_url(target_value)
     if not confirmed_host or confirmed_host.casefold() != (target_url.host or "").casefold():
         raise ValueError(
-            "--confirm-target must exactly match the PostgreSQL hostname in "
-            "TARGET_DATABASE_URL."
+            "--confirm-target must exactly match the PostgreSQL hostname in TARGET_DATABASE_URL."
         )
 
     source_engine = create_engine(source_url, pool_pre_ping=True)

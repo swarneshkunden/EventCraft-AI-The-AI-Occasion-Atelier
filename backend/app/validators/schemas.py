@@ -1,4 +1,5 @@
 """Pydantic schemas for all API request/response validation."""
+
 import re
 from datetime import date
 from typing import Any, Literal
@@ -9,7 +10,15 @@ from pydantic import BaseModel, EmailStr, Field, field_validator, model_validato
 
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _RSVP_STATUSES = {"pending", "confirmed", "declined"}
-_VENDOR_TYPES = {"venue", "caterer", "photographer", "decorator", "entertainment", "transport", "other"}
+_VENDOR_TYPES = {
+    "venue",
+    "caterer",
+    "photographer",
+    "decorator",
+    "entertainment",
+    "transport",
+    "other",
+}
 _EVENT_TYPES = {"wedding", "birthday", "community"}
 
 
@@ -31,6 +40,7 @@ class _OrmBase(StrictModel):
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
+
 
 class SignupRequest(StrictModel):
     email: EmailStr
@@ -85,8 +95,10 @@ class UserResponse(_OrmBase):
 
 # ── Events ────────────────────────────────────────────────────────────────────
 
+
 class EventProfile(StrictModel):
     """Structured answers from the intake wizard."""
+
     occasion: str = Field(max_length=200)
     budget: float = Field(gt=0, le=1_000_000_000, allow_inf_nan=False)
     guest_count: int = Field(ge=1, le=100_000)
@@ -159,6 +171,7 @@ class EventResponse(_OrmBase):
 
 # ── Budget ────────────────────────────────────────────────────────────────────
 
+
 class BudgetCategoryCreate(StrictModel):
     name: str = Field(min_length=1, max_length=100)
     allocated: float = Field(ge=0, le=1_000_000_000, allow_inf_nan=False)
@@ -220,6 +233,7 @@ class AcceptCrisisProposalRequest(StrictModel):
 
 # ── Tasks ─────────────────────────────────────────────────────────────────────
 
+
 class TaskCreate(StrictModel):
     title: str = Field(min_length=1, max_length=300)
     description: str = Field(default="", max_length=2000)
@@ -265,6 +279,7 @@ class TaskResponse(_OrmBase):
 
 
 # ── Vendors ───────────────────────────────────────────────────────────────────
+
 
 class VendorCreate(StrictModel):
     vendor_type: str
@@ -312,6 +327,7 @@ class VendorResponse(_OrmBase):
 
 
 # ── Guests ────────────────────────────────────────────────────────────────────
+
 
 class GuestCreate(StrictModel):
     name: str = Field(min_length=1, max_length=200)
@@ -368,6 +384,7 @@ class GuestListResponse(StrictModel):
 
 # ── Chat ──────────────────────────────────────────────────────────────────────
 
+
 class ChatMessageRequest(StrictModel):
     message: str = Field(min_length=1, max_length=4000)
 
@@ -381,6 +398,7 @@ class ChatMessageResponse(_OrmBase):
 
 # ── AI structured output schemas (validated before saving) ────────────────────
 
+
 class AIBudgetCategory(StrictModel):
     name: str = Field(min_length=1, max_length=100)
     allocated: float = Field(ge=0, le=1_000_000_000, allow_inf_nan=False)
@@ -389,6 +407,7 @@ class AIBudgetCategory(StrictModel):
 
 class AIBudgetSplit(StrictModel):
     """Expected JSON shape when AI proposes a budget split."""
+
     categories: list[AIBudgetCategory] = Field(min_length=1, max_length=20)
 
 
@@ -408,6 +427,7 @@ class AITask(StrictModel):
 
 class AITaskList(StrictModel):
     """Expected JSON shape when AI generates tasks."""
+
     tasks: list[AITask] = Field(min_length=1, max_length=30)
 
 
@@ -422,7 +442,9 @@ class AIReplanTaskChange(StrictModel):
     title: str = Field(min_length=1, max_length=300)
     old_due_date: str | None = None
     new_due_date: str | None = None
-    new_status: str | None = Field(default=None, pattern="^(pending|in_progress|completed|blocked)$")
+    new_status: str | None = Field(
+        default=None, pattern="^(pending|in_progress|completed|blocked)$"
+    )
     reason: str = Field(max_length=1000)
 
     @field_validator("old_due_date", "new_due_date")
@@ -433,6 +455,7 @@ class AIReplanTaskChange(StrictModel):
 
 class AIReplanDiff(StrictModel):
     """Expected JSON shape when AI re-plans after a change."""
+
     summary: str = Field(min_length=1, max_length=2000)
     budget_changes: list[AIReplanBudgetChange] = Field(max_length=20)
     task_changes: list[AIReplanTaskChange] = Field(max_length=30)
@@ -473,6 +496,7 @@ class AIIdeas(StrictModel):
 
 
 # ── Route response envelopes ──────────────────────────────────────────────────
+
 
 class MessageResponse(StrictModel):
     message: str

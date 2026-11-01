@@ -1,4 +1,5 @@
 """Unit tests for the shared, schema-validated AI generation pipeline."""
+
 import pytest
 from pydantic import BaseModel
 

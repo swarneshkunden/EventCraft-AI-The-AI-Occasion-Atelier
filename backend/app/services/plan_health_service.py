@@ -1,4 +1,5 @@
 """Deterministic, explainable plan-health scoring."""
+
 from datetime import date
 from typing import TypedDict
 
@@ -195,11 +196,7 @@ def _has_dependency_cycle(tasks: list[Task]) -> bool:
     """Detect cycles among task dependencies."""
     by_title = {task.title: task.title for task in tasks}
     graph = {
-        task.title: [
-            dependency
-            for dependency in (task.depends_on or [])
-            if dependency in by_title
-        ]
+        task.title: [dependency for dependency in (task.depends_on or []) if dependency in by_title]
         for task in tasks
     }
     visiting: set[str] = set()
@@ -236,7 +233,8 @@ def calculate_plan_health(
     total_budget = round(float(total_budget), 2)
     incomplete = [task for task in tasks if enum_value(task.status) != TaskStatus.completed.value]
     overdue = [
-        task for task in incomplete
+        task
+        for task in incomplete
         if (due := parse_iso_date(task.due_date)) is not None and due < today
     ]
     blocked = [task for task in tasks if enum_value(task.status) == TaskStatus.blocked.value]
@@ -255,7 +253,8 @@ def calculate_plan_health(
         "days_until_event": days_until,
         "deductions": deductions,
         "summary": (
-            "No tracked risks were found." if not deductions
+            "No tracked risks were found."
+            if not deductions
             else f"{len(deductions)} plan risk area(s) need review."
         ),
     }

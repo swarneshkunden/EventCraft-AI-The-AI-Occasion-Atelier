@@ -2,6 +2,7 @@
 FastAPI application entry point.
 Wires together all routers, middleware, and static file serving.
 """
+
 import logging
 from pathlib import Path
 

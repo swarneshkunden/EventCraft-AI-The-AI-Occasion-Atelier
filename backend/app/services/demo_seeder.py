@@ -2,6 +2,7 @@
 Demo event seeder – creates a sample Wedding event for evaluators.
 Budget: INR 8,00,000 | Guests: 200 | Event: 4 months from today
 """
+
 import logging
 from datetime import date, timedelta
 
@@ -73,24 +74,78 @@ def seed_demo_event(db: Session) -> Event:
 
     # Budget categories
     categories = [
-        BudgetCategory(event_id=event.id, name="Venue", allocated=180000, spent=0, sort_order=0,
-                       notes="Estimated (assumption), not a confirmed price."),
-        BudgetCategory(event_id=event.id, name="Catering", allocated=240000, spent=0, sort_order=1,
-                       notes="Estimated (assumption), not a confirmed price. ₹1,200/person × 200 guests."),
-        BudgetCategory(event_id=event.id, name="Photography & Video", allocated=80000, spent=0, sort_order=2,
-                       notes="Estimated (assumption), not a confirmed price."),
-        BudgetCategory(event_id=event.id, name="Decor & Flowers", allocated=100000, spent=0, sort_order=3,
-                       notes="Estimated (assumption), not a confirmed price."),
-        BudgetCategory(event_id=event.id, name="Entertainment & Music", allocated=60000, spent=0, sort_order=4,
-                       notes="Estimated (assumption), not a confirmed price."),
-        BudgetCategory(event_id=event.id, name="Invitations & Stationery", allocated=15000, spent=0, sort_order=5,
-                       notes="Estimated (assumption), not a confirmed price."),
-        BudgetCategory(event_id=event.id, name="Attire & Grooming", allocated=60000, spent=0, sort_order=6,
-                       notes="Estimated (assumption), not a confirmed price."),
-        BudgetCategory(event_id=event.id, name="Logistics & Transport", allocated=25000, spent=0, sort_order=7,
-                       notes="Estimated (assumption), not a confirmed price."),
-        BudgetCategory(event_id=event.id, name="Miscellaneous Buffer", allocated=40000, spent=0, sort_order=8,
-                       notes="5% buffer for unexpected costs."),
+        BudgetCategory(
+            event_id=event.id,
+            name="Venue",
+            allocated=180000,
+            spent=0,
+            sort_order=0,
+            notes="Estimated (assumption), not a confirmed price.",
+        ),
+        BudgetCategory(
+            event_id=event.id,
+            name="Catering",
+            allocated=240000,
+            spent=0,
+            sort_order=1,
+            notes="Estimated (assumption), not a confirmed price. ₹1,200/person × 200 guests.",
+        ),
+        BudgetCategory(
+            event_id=event.id,
+            name="Photography & Video",
+            allocated=80000,
+            spent=0,
+            sort_order=2,
+            notes="Estimated (assumption), not a confirmed price.",
+        ),
+        BudgetCategory(
+            event_id=event.id,
+            name="Decor & Flowers",
+            allocated=100000,
+            spent=0,
+            sort_order=3,
+            notes="Estimated (assumption), not a confirmed price.",
+        ),
+        BudgetCategory(
+            event_id=event.id,
+            name="Entertainment & Music",
+            allocated=60000,
+            spent=0,
+            sort_order=4,
+            notes="Estimated (assumption), not a confirmed price.",
+        ),
+        BudgetCategory(
+            event_id=event.id,
+            name="Invitations & Stationery",
+            allocated=15000,
+            spent=0,
+            sort_order=5,
+            notes="Estimated (assumption), not a confirmed price.",
+        ),
+        BudgetCategory(
+            event_id=event.id,
+            name="Attire & Grooming",
+            allocated=60000,
+            spent=0,
+            sort_order=6,
+            notes="Estimated (assumption), not a confirmed price.",
+        ),
+        BudgetCategory(
+            event_id=event.id,
+            name="Logistics & Transport",
+            allocated=25000,
+            spent=0,
+            sort_order=7,
+            notes="Estimated (assumption), not a confirmed price.",
+        ),
+        BudgetCategory(
+            event_id=event.id,
+            name="Miscellaneous Buffer",
+            allocated=40000,
+            spent=0,
+            sort_order=8,
+            notes="5% buffer for unexpected costs.",
+        ),
     ]
     for cat in categories:
         db.add(cat)
@@ -102,18 +157,84 @@ def seed_demo_event(db: Session) -> Event:
 
     tasks_data = [
         ("Finalise venue and sign contract", "venue", days_before(100), 1, []),
-        ("Confirm catering headcount and menu", "catering", days_before(90), 2, ["Finalise venue and sign contract"]),
-        ("Book photographer and videographer", "photography", days_before(90), 2, ["Finalise venue and sign contract"]),
-        ("Send save-the-date messages", "guest_management", days_before(90), 3, ["Finalise venue and sign contract"]),
-        ("Design and order invitations", "stationery", days_before(75), 4, ["Send save-the-date messages"]),
-        ("Confirm entertainment / live music", "entertainment", days_before(75), 3, ["Finalise venue and sign contract"]),
-        ("Send formal invitations", "guest_management", days_before(60), 4, ["Design and order invitations"]),
-        ("Finalize decor plan with decorator", "decor", days_before(60), 3, ["Finalise venue and sign contract"]),
-        ("Collect RSVP responses", "guest_management", days_before(30), 5, ["Send formal invitations"]),
-        ("Confirm final headcount with caterer", "catering", days_before(21), 2, ["Collect RSVP responses"]),
-        ("Arrange transport for guests", "logistics", days_before(21), 4, ["Confirm final headcount with caterer"]),
+        (
+            "Confirm catering headcount and menu",
+            "catering",
+            days_before(90),
+            2,
+            ["Finalise venue and sign contract"],
+        ),
+        (
+            "Book photographer and videographer",
+            "photography",
+            days_before(90),
+            2,
+            ["Finalise venue and sign contract"],
+        ),
+        (
+            "Send save-the-date messages",
+            "guest_management",
+            days_before(90),
+            3,
+            ["Finalise venue and sign contract"],
+        ),
+        (
+            "Design and order invitations",
+            "stationery",
+            days_before(75),
+            4,
+            ["Send save-the-date messages"],
+        ),
+        (
+            "Confirm entertainment / live music",
+            "entertainment",
+            days_before(75),
+            3,
+            ["Finalise venue and sign contract"],
+        ),
+        (
+            "Send formal invitations",
+            "guest_management",
+            days_before(60),
+            4,
+            ["Design and order invitations"],
+        ),
+        (
+            "Finalize decor plan with decorator",
+            "decor",
+            days_before(60),
+            3,
+            ["Finalise venue and sign contract"],
+        ),
+        (
+            "Collect RSVP responses",
+            "guest_management",
+            days_before(30),
+            5,
+            ["Send formal invitations"],
+        ),
+        (
+            "Confirm final headcount with caterer",
+            "catering",
+            days_before(21),
+            2,
+            ["Collect RSVP responses"],
+        ),
+        (
+            "Arrange transport for guests",
+            "logistics",
+            days_before(21),
+            4,
+            ["Confirm final headcount with caterer"],
+        ),
         ("Coordinate with all vendors – final briefing", "logistics", days_before(7), 1, []),
-        ("Prepare day-of timeline sheet", "logistics", days_before(3), 2, ["Coordinate with all vendors – final briefing"]),
+        (
+            "Prepare day-of timeline sheet",
+            "logistics",
+            days_before(3),
+            2,
+            ["Coordinate with all vendors – final briefing"],
+        ),
     ]
 
     for title, category, due_date, priority, depends_on in tasks_data:
@@ -169,7 +290,9 @@ def seed_demo_event(db: Session) -> Event:
     ]
 
     for vd in vendors_data:
-        v = Vendor(event_id=event.id, **{k: vd[k] for k in vd if k not in ("ai_checklist", "ai_questions")})
+        v = Vendor(
+            event_id=event.id, **{k: vd[k] for k in vd if k not in ("ai_checklist", "ai_questions")}
+        )
         v.ai_checklist = vd["ai_checklist"]
         v.ai_questions = vd["ai_questions"]
         db.add(v)
@@ -184,17 +307,19 @@ def seed_demo_event(db: Session) -> Event:
         db.add(Guest(event_id=event.id, **g))
 
     # Welcome chat message
-    db.add(ChatMessage(
-        event_id=event.id,
-        role="assistant",
-        content=(
-            "👋 Welcome to the demo event — **Priya & Arjun's Wedding**!\n\n"
-            "This is a pre-filled sample with budget categories, a task timeline, "
-            "and vendor entries so you can explore all features.\n\n"
-            "Try asking me: *\"What should we focus on this week?\"* or "
-            "*\"What happens if we reduce the guest count to 150?\"*"
-        ),
-    ))
+    db.add(
+        ChatMessage(
+            event_id=event.id,
+            role="assistant",
+            content=(
+                "👋 Welcome to the demo event — **Priya & Arjun's Wedding**!\n\n"
+                "This is a pre-filled sample with budget categories, a task timeline, "
+                "and vendor entries so you can explore all features.\n\n"
+                'Try asking me: *"What should we focus on this week?"* or '
+                '*"What happens if we reduce the guest count to 150?"*'
+            ),
+        )
+    )
 
     db.commit()
     log.info("Demo event seeded (event_id=%s)", event.id)

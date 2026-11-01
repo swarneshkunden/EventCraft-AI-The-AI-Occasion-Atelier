@@ -1,4 +1,5 @@
 """Guards the public API contract against regressing to untyped dicts."""
+
 import pytest
 
 from app.main import app

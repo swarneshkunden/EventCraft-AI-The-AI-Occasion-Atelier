@@ -1,4 +1,5 @@
 """Exercise schema upgrades against a fresh isolated database."""
+
 import os
 from pathlib import Path
 
@@ -27,10 +28,7 @@ def test_initial_migration_creates_application_schema(tmp_path, monkeypatch):
     try:
         inspector = inspect(engine)
         tables = set(inspector.get_table_names())
-        columns = {
-            column["name"]: column["type"]
-            for column in inspector.get_columns("events")
-        }
+        columns = {column["name"]: column["type"] for column in inspector.get_columns("events")}
         event_column_names = set(columns)
         with engine.connect() as connection:
             email_index_sql = connection.execute(
@@ -130,10 +128,7 @@ def test_upgrade_preserves_rows_from_initial_schema(tmp_path, monkeypatch):
                 text("SELECT id, total_budget, version FROM events WHERE id = 'event-1'")
             ).one()
             category = connection.execute(
-                text(
-                    "SELECT id, allocated, spent FROM budget_categories "
-                    "WHERE id = 'category-1'"
-                )
+                text("SELECT id, allocated, spent FROM budget_categories WHERE id = 'category-1'")
             ).one()
             foreign_key_issues = connection.exec_driver_sql("PRAGMA foreign_key_check").all()
     finally:
@@ -178,8 +173,7 @@ def test_postgresql_migrations_create_current_schema(monkeypatch):
 
         inspector = inspect(engine)
         event_columns = {
-            column["name"]: column["type"]
-            for column in inspector.get_columns("events")
+            column["name"]: column["type"] for column in inspector.get_columns("events")
         }
         assert isinstance(event_columns["profile"], JSONB)
         assert isinstance(event_columns["total_budget"], Numeric)
@@ -252,9 +246,7 @@ def test_postgresql_numeric_money_and_constraints(db):
     db.execute(text("DELETE FROM users WHERE id = :user_id"), {"user_id": user_id})
     db.commit()
     assert db.scalar(select(Event).where(Event.id == event_id)) is None
-    assert db.scalar(
-        select(BudgetCategory).where(BudgetCategory.event_id == event_id)
-    ) is None
+    assert db.scalar(select(BudgetCategory).where(BudgetCategory.event_id == event_id)) is None
 
 
 @pytest.mark.skipif(
@@ -296,9 +288,7 @@ def test_postgresql_event_concurrent_updates_reject_stale_write(db):
         with pytest.raises(StaleDataError):
             second_session.flush()
         second_session.rollback()
-        assert second_session.scalar(
-            select(Event.total_budget).where(Event.id == event_id)
-        ) == 125
+        assert second_session.scalar(select(Event.total_budget).where(Event.id == event_id)) == 125
     finally:
         first_session.close()
         second_session.close()

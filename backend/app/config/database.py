@@ -1,4 +1,5 @@
 """Database setup using SQLAlchemy with SQLite."""
+
 import logging
 import time
 from collections.abc import Generator
@@ -41,6 +42,7 @@ engine = create_engine(settings.DATABASE_URL, **engine_options)
 
 
 if is_postgresql:
+
     @event.listens_for(engine, "do_connect")
     def _connect_with_retry(
         dialect: Any,
@@ -56,7 +58,7 @@ if is_postgresql:
                 if attempt + 1 == settings.DB_CONNECT_RETRIES:
                     log.error("Database connection failed (%s)", type(exc).__name__)
                     raise
-                delay = settings.DB_RETRY_BACKOFF_SECONDS * (2 ** attempt)
+                delay = settings.DB_RETRY_BACKOFF_SECONDS * (2**attempt)
                 log.warning(
                     "Database connection attempt %d/%d failed (%s); retrying in %.1fs",
                     attempt + 1,
@@ -68,6 +70,7 @@ if is_postgresql:
 
 
 if settings.DATABASE_URL.startswith("sqlite"):
+
     @event.listens_for(engine, "connect")
     def _set_sqlite_pragmas(
         dbapi_connection: Any,

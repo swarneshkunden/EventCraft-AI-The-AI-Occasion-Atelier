@@ -1,4 +1,5 @@
 """Safety and row-preservation checks for the opt-in database copy utility."""
+
 from datetime import UTC, datetime
 
 import pytest
@@ -65,9 +66,10 @@ def test_copy_rows_preserves_ids_and_refuses_nonempty_target(tmp_path):
             counts = _copy_rows(source, target)
             assert counts["users"] == 1
             assert counts["events"] == 0
-            assert target.execute(
-                select(user_table.c.id, user_table.c.email)
-            ).one() == ("user-1", "legacy@example.test")
+            assert target.execute(select(user_table.c.id, user_table.c.email)).one() == (
+                "user-1",
+                "legacy@example.test",
+            )
 
         with source_engine.connect() as source, target_engine.begin() as target:
             with pytest.raises(ValueError, match="non-empty target"):

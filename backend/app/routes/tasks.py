@@ -1,4 +1,5 @@
 """Task routes – list, update, generate via AI."""
+
 import json
 from datetime import date
 
@@ -100,9 +101,7 @@ async def generate_tasks(
     """Generate a prioritized task list from the event profile via AI."""
     event = get_event(event_id, current_user.id, db)
 
-    event_date = event.event_date or (
-        date.today().replace(year=date.today().year + 1).isoformat()
-    )
+    event_date = event.event_date or (date.today().replace(year=date.today().year + 1).isoformat())
 
     user_prompt = TASK_GENERATION_USER.format(
         profile_json=json.dumps(event.profile, indent=2),

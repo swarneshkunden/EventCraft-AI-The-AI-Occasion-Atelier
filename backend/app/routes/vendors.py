@@ -1,4 +1,5 @@
 """Vendor routes – CRUD plus AI checklist/questions generation."""
+
 from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
@@ -90,11 +91,7 @@ async def generate_questions(
     vendor = get_vendor(event_id, vendor_id, current_user.id, db)
 
     # Find budget for this vendor type
-    budget_for_type = (
-        db.query(BudgetCategory)
-        .filter(BudgetCategory.event_id == event_id)
-        .all()
-    )
+    budget_for_type = db.query(BudgetCategory).filter(BudgetCategory.event_id == event_id).all()
     cat_budget = next(
         (c.allocated for c in budget_for_type if vendor.vendor_type.lower() in c.name.lower()),
         0,

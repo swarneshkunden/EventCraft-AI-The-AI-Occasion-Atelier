@@ -1,4 +1,5 @@
 """Tests for deterministic AI fallbacks and the fallback wrapper."""
+
 from types import SimpleNamespace
 
 import pytest

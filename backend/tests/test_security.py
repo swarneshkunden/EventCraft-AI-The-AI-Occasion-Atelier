@@ -1,4 +1,5 @@
 """Test that rate limiting and security headers work."""
+
 import asyncio
 import json
 
@@ -156,17 +157,21 @@ class TestRateLimiting:
         for _ in range(3):
             assert client.get("/api/auth/me").status_code == 401
 
-        response = client.post("/api/auth/signup", json={
-            "email": "new-user@test.com",
-            "password": "Valid@1234",
-            "display_name": "New User",
-        })
+        response = client.post(
+            "/api/auth/signup",
+            json={
+                "email": "new-user@test.com",
+                "password": "Valid@1234",
+                "display_name": "New User",
+            },
+        )
 
         assert response.status_code == 202
 
     def test_auth_rate_limit_triggers(self, client, monkeypatch):
         """After enough failed requests, rate limit should kick in."""
         from app.config import get_settings
+
         settings = get_settings()
         monkeypatch.setattr(settings, "RATE_AUTH_MAX_REQUESTS", 3)
         monkeypatch.setattr(settings, "RATE_AUTH_WINDOW_SECONDS", 3600)
@@ -186,6 +191,7 @@ class TestRateLimiting:
 
     def test_ai_short_window_limit_triggers(self, client, monkeypatch):
         from app.config import get_settings
+
         settings = get_settings()
         monkeypatch.setattr(settings, "RATE_AI_MAX_REQUESTS", 1)
         monkeypatch.setattr(settings, "RATE_AI_DAILY_MAX_REQUESTS", 10)
@@ -198,6 +204,7 @@ class TestRateLimiting:
 
     def test_ai_daily_limit_triggers(self, client, monkeypatch):
         from app.config import get_settings
+
         settings = get_settings()
         monkeypatch.setattr(settings, "RATE_AI_MAX_REQUESTS", 10)
         monkeypatch.setattr(settings, "RATE_AI_DAILY_MAX_REQUESTS", 1)
@@ -208,15 +215,19 @@ class TestRateLimiting:
         assert limited.status_code == 429
         assert limited.headers["retry-after"] == str(settings.RATE_AI_DAILY_WINDOW_SECONDS)
 
-    @pytest.mark.parametrize("path", [
-        "/api/events/1/budget/ai-split",
-        "/api/events/1/budget/scenario",
-        "/api/events/1/tasks/generate",
-        "/api/events/1/vendors/1/generate-questions",
-        "/api/events/1/chat/ideas",
-        "/api/events/1/chat",
-        "/api/events/1/plan-health/crisis",
-    ])
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "/api/events/1/budget/ai-split",
+            "/api/events/1/budget/scenario",
+            "/api/events/1/tasks/generate",
+            "/api/events/1/vendors/1/generate-questions",
+            "/api/events/1/chat/ideas",
+            "/api/events/1/chat",
+            "/api/events/1/plan-health/crisis",
+        ],
+    )
     def test_ai_endpoints_are_classified(self, path):
         from app.middleware.rate_limit import RateLimitMiddleware
+
         assert RateLimitMiddleware._is_ai_endpoint(path, "POST")

@@ -1,4 +1,5 @@
 """Alembic migration environment."""
+
 import os
 from logging.config import fileConfig
 
@@ -42,7 +43,9 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     database_url = _database_url()
-    connect_args = {"connect_timeout": 5} if database_url.startswith("postgresql+psycopg://") else {}
+    connect_args = (
+        {"connect_timeout": 5} if database_url.startswith("postgresql+psycopg://") else {}
+    )
     connectable = create_engine(
         database_url,
         connect_args=connect_args,

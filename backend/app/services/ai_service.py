@@ -2,6 +2,7 @@
 Gemini AI service with retry/backoff, response caching, and schema validation.
 The API key is ONLY used here – never exposed to the frontend.
 """
+
 import asyncio
 import hashlib
 import json
@@ -96,7 +97,7 @@ async def _call_gemini(system_prompt: str, user_prompt: str) -> str:
 
         for attempt in range(settings.GEMINI_MAX_RETRIES):
             if attempt > 0:
-                delay = settings.GEMINI_RETRY_BACKOFF_BASE ** attempt
+                delay = settings.GEMINI_RETRY_BACKOFF_BASE**attempt
                 log.warning(
                     "Gemini retry %d/%d after %.1fs",
                     attempt,
@@ -132,7 +133,9 @@ async def _call_gemini(system_prompt: str, user_prompt: str) -> str:
     if isinstance(last_err, httpx.HTTPStatusError):
         log.error("Gemini models failed with HTTP status %d", last_err.response.status_code)
     else:
-        log.error("Gemini models failed: %s", type(last_err).__name__ if last_err else "unknown error")
+        log.error(
+            "Gemini models failed: %s", type(last_err).__name__ if last_err else "unknown error"
+        )
     return _AI_FALLBACK
 
 

@@ -1,4 +1,5 @@
 """Guest CRUD and CSV import route coverage."""
+
 import io
 
 
@@ -51,18 +52,14 @@ def test_delete_guest_removes_it_from_the_list(auth_client, sample_event):
 
 
 def test_delete_missing_guest_returns_404(auth_client, sample_event):
-    response = auth_client.delete(
-        f"/api/events/{sample_event['id']}/guests/does-not-exist"
-    )
+    response = auth_client.delete(f"/api/events/{sample_event['id']}/guests/does-not-exist")
 
     assert response.status_code == 404
 
 
 def test_csv_import_reports_imported_and_skipped_rows(auth_client, sample_event):
     csv_body = (
-        "name,email,rsvp_status\n"
-        "Ravi,ravi@example.com,confirmed\n"
-        "No Email,not-an-email,pending\n"
+        "name,email,rsvp_status\nRavi,ravi@example.com,confirmed\nNo Email,not-an-email,pending\n"
     )
 
     response = auth_client.post(

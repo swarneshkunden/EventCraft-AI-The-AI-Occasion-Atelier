@@ -1,4 +1,5 @@
 """Deterministic crisis recognition rules that run before any AI call."""
+
 import re
 
 from app.validators.schemas import CrisisIntent
@@ -24,7 +25,9 @@ def parse_known_crisis(description: str, event_date: str | None) -> CrisisIntent
         if match:
             amount = int(match.group(1))
             unit = match.group(2)
-            days = amount * (30 if unit.startswith("month") else 7 if unit.startswith("week") else 1)
+            days = amount * (
+                30 if unit.startswith("month") else 7 if unit.startswith("week") else 1
+            )
             if 1 <= days <= 365:
                 return CrisisIntent(kind="date_advanced", days_advanced=days)
     return None

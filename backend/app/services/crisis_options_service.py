@@ -1,4 +1,5 @@
 """Deterministic crisis response-option construction."""
+
 from datetime import date, timedelta
 from typing import Any
 
@@ -12,6 +13,7 @@ def _deadline(event: Event, days_before: int) -> str:
     target = parse_iso_date(event.event_date)
     candidate = target - timedelta(days=days_before) if target else date.today() + timedelta(days=1)
     return max(candidate, date.today()).isoformat()
+
 
 def _option(
     option_id: str,
@@ -27,6 +29,7 @@ def _option(
         "diff": diff,
         "changes": changes,
     }
+
 
 def build_crisis_options(
     event: Event,
@@ -72,17 +75,21 @@ def _guest_count_options(
         estimate_note = "Estimated from the current per-guest assumption; not a confirmed quote."
         if estimate_note.casefold() not in note.casefold():
             note = f"{note}\n{estimate_note}".strip()
-        budget_updates.append({
-            "id": catering.id,
-            "allocated": new_allocation,
-            "notes": note,
-        })
-        budget_diff.append({
-            "name": catering.name,
-            "before": float(catering.allocated),
-            "after": new_allocation,
-            "estimated": True,
-        })
+        budget_updates.append(
+            {
+                "id": catering.id,
+                "allocated": new_allocation,
+                "notes": note,
+            }
+        )
+        budget_diff.append(
+            {
+                "name": catering.name,
+                "before": float(catering.allocated),
+                "after": new_allocation,
+                "estimated": True,
+            }
+        )
 
     review_task = {
         "title": f"Reconfirm venue capacity and catering for {new_count} guests",
@@ -126,7 +133,13 @@ def _guest_count_options(
             {
                 "guest_count": {"before": old_count, "after": new_count},
                 "budget": [],
-                "tasks": [{"title": review_task["title"], "before": None, "after": review_task["due_date"]}],
+                "tasks": [
+                    {
+                        "title": review_task["title"],
+                        "before": None,
+                        "after": review_task["due_date"],
+                    }
+                ],
                 "vendors": [],
             },
         ),
@@ -150,8 +163,7 @@ def _date_advanced_options(
 
     if new_date <= today:
         raise InvalidRequestError(
-            "That change would move the event to today or earlier. "
-            "Review the date and try again."
+            "That change would move the event to today or earlier. Review the date and try again."
         )
 
     shifts = []
@@ -163,11 +175,13 @@ def _date_advanced_options(
         if due:
             shifted = due - timedelta(days=intent.days_advanced)
             shifts.append({"id": task.id, "due_date": shifted.isoformat()})
-            shift_diff.append({
-                "title": task.title,
-                "before": due.isoformat(),
-                "after": shifted.isoformat(),
-            })
+            shift_diff.append(
+                {
+                    "title": task.title,
+                    "before": due.isoformat(),
+                    "after": shifted.isoformat(),
+                }
+            )
 
     review_task = {
         "title": "Review compressed timeline and vendor deadlines",
@@ -213,7 +227,13 @@ def _date_advanced_options(
             {
                 "event_date": {"before": old_date.isoformat(), "after": new_date.isoformat()},
                 "budget": [],
-                "tasks": [{"title": review_task["title"], "before": None, "after": review_task["due_date"]}],
+                "tasks": [
+                    {
+                        "title": review_task["title"],
+                        "before": None,
+                        "after": review_task["due_date"],
+                    }
+                ],
                 "vendors": [],
             },
         ),
@@ -228,13 +248,13 @@ def _caterer_cancelled_options(
     caterers = [vendor for vendor in vendors if enum_value(vendor.vendor_type) == "caterer"]
 
     vendor_updates = [
-        {"id": vendor.id, "is_selected": False}
-        for vendor in caterers if vendor.is_selected
+        {"id": vendor.id, "is_selected": False} for vendor in caterers if vendor.is_selected
     ]
 
     vendor_diff = [
         {"id": vendor.id, "before": bool(vendor.is_selected), "after": False}
-        for vendor in caterers if vendor.is_selected
+        for vendor in caterers
+        if vendor.is_selected
     ]
 
     option_tasks = [
@@ -272,7 +292,13 @@ def _caterer_cancelled_options(
             {
                 "event_date": None,
                 "budget": [],
-                "tasks": [{"title": option_tasks[0]["title"], "before": None, "after": option_tasks[0]["due_date"]}],
+                "tasks": [
+                    {
+                        "title": option_tasks[0]["title"],
+                        "before": None,
+                        "after": option_tasks[0]["due_date"],
+                    }
+                ],
                 "vendors": vendor_diff,
             },
         ),
@@ -291,7 +317,13 @@ def _caterer_cancelled_options(
             {
                 "event_date": None,
                 "budget": [],
-                "tasks": [{"title": option_tasks[1]["title"], "before": None, "after": option_tasks[1]["due_date"]}],
+                "tasks": [
+                    {
+                        "title": option_tasks[1]["title"],
+                        "before": None,
+                        "after": option_tasks[1]["due_date"],
+                    }
+                ],
                 "vendors": vendor_diff,
             },
         ),
@@ -301,23 +333,23 @@ def _caterer_cancelled_options(
 def _weather_options(event: Event) -> list[dict[str, Any]]:
     """Create review steps for weather-related disruption."""
     weather_tasks = [
-            {
-                "title": "Confirm an indoor weather-safe backup venue",
-                "description": "Check availability, capacity, accessibility and cancellation terms directly.",
-                "category": "venue",
-                "due_date": _deadline(event, 14),
-                "priority": 1,
-                "depends_on": [],
-            },
-            {
-                "title": "Prepare a rain contingency and guest communication plan",
-                "description": "Confirm the trigger, owner, setup timing and guest update channel.",
-                "category": "logistics",
-                "due_date": _deadline(event, 7),
-                "priority": 2,
-                "depends_on": [],
-            },
-        ]
+        {
+            "title": "Confirm an indoor weather-safe backup venue",
+            "description": "Check availability, capacity, accessibility and cancellation terms directly.",
+            "category": "venue",
+            "due_date": _deadline(event, 14),
+            "priority": 1,
+            "depends_on": [],
+        },
+        {
+            "title": "Prepare a rain contingency and guest communication plan",
+            "description": "Confirm the trigger, owner, setup timing and guest update channel.",
+            "category": "logistics",
+            "due_date": _deadline(event, 7),
+            "priority": 2,
+            "depends_on": [],
+        },
+    ]
     return [
         _option(
             "indoor_backup",
@@ -334,7 +366,13 @@ def _weather_options(event: Event) -> list[dict[str, Any]]:
             {
                 "event_date": None,
                 "budget": [],
-                "tasks": [{"title": weather_tasks[0]["title"], "before": None, "after": weather_tasks[0]["due_date"]}],
+                "tasks": [
+                    {
+                        "title": weather_tasks[0]["title"],
+                        "before": None,
+                        "after": weather_tasks[0]["due_date"],
+                    }
+                ],
                 "vendors": [],
             },
         ),
@@ -353,7 +391,13 @@ def _weather_options(event: Event) -> list[dict[str, Any]]:
             {
                 "event_date": None,
                 "budget": [],
-                "tasks": [{"title": weather_tasks[1]["title"], "before": None, "after": weather_tasks[1]["due_date"]}],
+                "tasks": [
+                    {
+                        "title": weather_tasks[1]["title"],
+                        "before": None,
+                        "after": weather_tasks[1]["due_date"],
+                    }
+                ],
                 "vendors": [],
             },
         ),
@@ -400,16 +444,18 @@ def _general_options(event: Event) -> list[dict[str, Any]]:
                 "vendors": [],
             },
         )
-        for index, (task, label, tradeoff) in enumerate([
-            (
-                generic_tasks[0],
-                "Add a team review task",
-                "Makes no plan assumptions; requires a human to clarify the reported change.",
-            ),
-            (
-                generic_tasks[1],
-                "Add a cross-check task",
-                "Adds a verification step without changing estimates or commitments.",
-            ),
-        ])
-        ]
+        for index, (task, label, tradeoff) in enumerate(
+            [
+                (
+                    generic_tasks[0],
+                    "Add a team review task",
+                    "Makes no plan assumptions; requires a human to clarify the reported change.",
+                ),
+                (
+                    generic_tasks[1],
+                    "Add a cross-check task",
+                    "Adds a verification step without changing estimates or commitments.",
+                ),
+            ]
+        )
+    ]

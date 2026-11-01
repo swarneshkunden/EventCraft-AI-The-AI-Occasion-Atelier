@@ -1,4 +1,5 @@
 """Demo route – load pre-seeded demo event for evaluators."""
+
 import logging
 
 from fastapi import APIRouter, Depends, Response
@@ -33,6 +34,7 @@ async def load_demo(
     Returns the event_id so the frontend can navigate directly to it.
     """
     from app.config.settings import get_settings
+
     settings = get_settings()
     cookie_kwargs = {**_COOKIE_KWARGS, "secure": settings.APP_ENV == "production"}
 
@@ -45,10 +47,18 @@ async def load_demo(
     refresh_token = create_refresh_token(user.id, db)
     db.commit()
 
-    response.set_cookie("access_token", access_token,
-                        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60, **cookie_kwargs)
-    response.set_cookie("refresh_token", refresh_token,
-                        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400, **cookie_kwargs)
+    response.set_cookie(
+        "access_token",
+        access_token,
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        **cookie_kwargs,
+    )
+    response.set_cookie(
+        "refresh_token",
+        refresh_token,
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+        **cookie_kwargs,
+    )
 
     return DemoLoadResponse(
         event_id=event.id,

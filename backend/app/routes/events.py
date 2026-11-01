@@ -1,4 +1,5 @@
 """Event CRUD routes."""
+
 import logging
 
 from fastapi import APIRouter, Depends

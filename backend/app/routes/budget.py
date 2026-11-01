@@ -1,4 +1,5 @@
 """Budget routes – category management and AI split generation."""
+
 import json
 
 from fastapi import APIRouter, Depends, Response

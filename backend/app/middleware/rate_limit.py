@@ -2,6 +2,7 @@
 In-memory rate limiter using a sliding window counter.
 All thresholds are loaded from settings – nothing is hardcoded.
 """
+
 import asyncio
 import logging
 import time
@@ -47,10 +48,7 @@ class _SlidingWindowStore:
 
     def _prune(self, now: float) -> None:
         self._operations += 1
-        if (
-            len(self._store) >= settings.RATE_MAX_TRACKED_KEYS
-            and self._operations % 1024 == 0
-        ):
+        if len(self._store) >= settings.RATE_MAX_TRACKED_KEYS and self._operations % 1024 == 0:
             retention = max(
                 settings.RATE_AUTH_WINDOW_SECONDS,
                 settings.RATE_AUTH_ACCOUNT_WINDOW_SECONDS,
@@ -134,7 +132,7 @@ class _SlidingWindowStore:
             failures = state.failure_count
         if failures == 0:
             return 0.0
-        delay = settings.RATE_AUTH_BACKOFF_BASE ** failures
+        delay = settings.RATE_AUTH_BACKOFF_BASE**failures
         return min(delay, settings.RATE_AUTH_BACKOFF_CAP_SECONDS)
 
 

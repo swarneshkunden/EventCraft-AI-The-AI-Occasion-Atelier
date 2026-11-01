@@ -1,4 +1,5 @@
 """Chat assistant route – context-aware AI chat for a specific event."""
+
 import json
 
 from fastapi import APIRouter, Depends, Response

@@ -1,4 +1,5 @@
 """Resolve user-described event disruptions into validated crisis intents."""
+
 import json
 import logging
 from collections.abc import Awaitable, Callable

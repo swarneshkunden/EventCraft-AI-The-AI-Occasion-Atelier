@@ -21,9 +21,10 @@ class TestBudgetMath:
     def test_spent_cannot_exceed_allocated(self, auth_client, sample_event):
         """Updating spent above allocated is allowed by API but must be stored correctly."""
         event_id = sample_event["id"]
-        auth_client.put(f"/api/events/{event_id}/budget", json=[
-            {"name": "Venue", "allocated": 100000, "spent": 0}
-        ])
+        auth_client.put(
+            f"/api/events/{event_id}/budget",
+            json=[{"name": "Venue", "allocated": 100000, "spent": 0}],
+        )
         cats = auth_client.get(f"/api/events/{event_id}/budget").json()
         cat_id = cats[0]["id"]
 
@@ -33,9 +34,10 @@ class TestBudgetMath:
 
     def test_budget_category_update_only_changes_requested_fields(self, auth_client, sample_event):
         event_id = sample_event["id"]
-        auth_client.put(f"/api/events/{event_id}/budget", json=[
-            {"name": "Catering", "allocated": 200000, "spent": 0, "notes": "original note"}
-        ])
+        auth_client.put(
+            f"/api/events/{event_id}/budget",
+            json=[{"name": "Catering", "allocated": 200000, "spent": 0, "notes": "original note"}],
+        )
         cats = auth_client.get(f"/api/events/{event_id}/budget").json()
         cat_id = cats[0]["id"]
 
@@ -54,7 +56,7 @@ class TestBudgetMath:
 
     def test_negative_allocated_rejected(self, auth_client, sample_event):
         event_id = sample_event["id"]
-        resp = auth_client.put(f"/api/events/{event_id}/budget", json=[
-            {"name": "Bad Cat", "allocated": -1000}
-        ])
+        resp = auth_client.put(
+            f"/api/events/{event_id}/budget", json=[{"name": "Bad Cat", "allocated": -1000}]
+        )
         assert resp.status_code == 400

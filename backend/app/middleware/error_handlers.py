@@ -2,6 +2,7 @@
 Central error handler – returns generic messages to clients,
 logs full detail server-side.
 """
+
 import logging
 import traceback
 
@@ -20,7 +21,9 @@ def _request_id(request: Request) -> str:
     return getattr(request.state, "request_id", "n/a")
 
 
-async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
     log.info(
         "Validation error on %s %s (%d issues)",
         request.method,
@@ -43,7 +46,9 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException) 
         request.url.path,
         exc.status_code,
     )
-    detail = "Authentication required" if exc.status_code == 401 else "Request could not be completed"
+    detail = (
+        "Authentication required" if exc.status_code == 401 else "Request could not be completed"
+    )
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": detail, "request_id": _request_id(request)},

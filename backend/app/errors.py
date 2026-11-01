@@ -48,9 +48,7 @@ class AIUnavailableError(AppError):
     """The AI provider could not be reached or returned its fallback text."""
 
     status_code = 503
-    default_detail = (
-        "The AI assistant is temporarily unavailable. Please try again in a moment."
-    )
+    default_detail = "The AI assistant is temporarily unavailable. Please try again in a moment."
 
 
 class AIResponseError(AppError):

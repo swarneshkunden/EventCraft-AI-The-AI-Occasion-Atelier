@@ -1,4 +1,5 @@
 """Unit tests for task dependency and timeline logic."""
+
 from app.models.models import Task, TaskStatus
 from app.services.event_service import compute_task_readiness
 
@@ -65,18 +66,27 @@ class TestTaskRoutes:
     def test_task_status_update(self, auth_client, sample_event, db):
         event_id = sample_event["id"]
         from app.models.models import Event
+
         event = db.query(Event).filter(Event.id == event_id).first()
         from app.services.event_service import bulk_create_tasks
-        tasks = bulk_create_tasks(event_id, event.owner_id, [
-            {"title": "Test Task", "category": "general", "priority": 5}
-        ], db)
+
+        tasks = bulk_create_tasks(
+            event_id,
+            event.owner_id,
+            [{"title": "Test Task", "category": "general", "priority": 5}],
+            db,
+        )
         db.commit()
         task_id = tasks[0].id
 
-        resp = auth_client.patch(f"/api/events/{event_id}/tasks/{task_id}", json={"status": "completed"})
+        resp = auth_client.patch(
+            f"/api/events/{event_id}/tasks/{task_id}", json={"status": "completed"}
+        )
         assert resp.status_code == 200
 
     def test_invalid_task_status_rejected(self, auth_client, sample_event):
         event_id = sample_event["id"]
-        resp = auth_client.patch(f"/api/events/{event_id}/tasks/nonexistent", json={"status": "flying"})
+        resp = auth_client.patch(
+            f"/api/events/{event_id}/tasks/nonexistent", json={"status": "flying"}
+        )
         assert resp.status_code == 400

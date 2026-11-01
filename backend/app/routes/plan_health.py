@@ -183,11 +183,15 @@ def _get_owned_proposal(
     db: Session,
 ) -> PlanChangeProposal:
     """Fetch a proposal scoped to its event and owner or raise not found."""
-    proposal = db.query(PlanChangeProposal).filter(
-        PlanChangeProposal.id == proposal_id,
-        PlanChangeProposal.event_id == event_id,
-        PlanChangeProposal.owner_id == owner_id,
-    ).first()
+    proposal = (
+        db.query(PlanChangeProposal)
+        .filter(
+            PlanChangeProposal.id == proposal_id,
+            PlanChangeProposal.event_id == event_id,
+            PlanChangeProposal.owner_id == owner_id,
+        )
+        .first()
+    )
     if proposal is None:
         raise NotFoundError("Proposal not found.")
     return proposal

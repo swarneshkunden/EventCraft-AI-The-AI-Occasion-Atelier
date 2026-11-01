@@ -1,4 +1,5 @@
 """Check the deployed service's public health route and SPA entry point."""
+
 import argparse
 import json
 import sys

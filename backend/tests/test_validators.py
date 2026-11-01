@@ -1,4 +1,5 @@
 """Tests for validators and schema parsing."""
+
 import pytest
 from pydantic import ValidationError
 
@@ -17,9 +18,7 @@ class TestSignupSchema:
         assert s.email == "a@b.com"
 
     def test_email_is_normalized(self):
-        s = SignupRequest(
-            email=" Alice@Example.COM ", password="Valid@1234", display_name="Alice"
-        )
+        s = SignupRequest(email=" Alice@Example.COM ", password="Valid@1234", display_name="Alice")
         assert s.email == "alice@example.com"
 
     def test_extra_fields_are_rejected(self):
@@ -46,12 +45,16 @@ class TestSignupSchema:
 
 class TestEventProfile:
     def test_valid_profile(self):
-        p = EventProfile(occasion="Wedding", budget=500000, guest_count=100, event_date="2027-06-15")
+        p = EventProfile(
+            occasion="Wedding", budget=500000, guest_count=100, event_date="2027-06-15"
+        )
         assert p.budget == 500000
 
     def test_bad_date_format(self):
         with pytest.raises(ValidationError):
-            EventProfile(occasion="Wedding", budget=500000, guest_count=100, event_date="15/06/2027")
+            EventProfile(
+                occasion="Wedding", budget=500000, guest_count=100, event_date="15/06/2027"
+            )
 
     def test_zero_budget_rejected(self):
         with pytest.raises(ValidationError):
@@ -80,8 +83,13 @@ class TestAISchemaValidation:
     def test_valid_task_list(self):
         data = {
             "tasks": [
-                {"title": "Book Venue", "priority": 1, "category": "venue",
-                 "due_date": "2027-01-01", "depends_on": []}
+                {
+                    "title": "Book Venue",
+                    "priority": 1,
+                    "category": "venue",
+                    "due_date": "2027-01-01",
+                    "depends_on": [],
+                }
             ]
         }
         validated = AITaskList.model_validate(data)
@@ -89,9 +97,9 @@ class TestAISchemaValidation:
 
     def test_extra_ai_output_fields_are_rejected(self):
         with pytest.raises(ValidationError):
-            AITaskList.model_validate({
-                "tasks": [{"title": "Book Venue", "priority": 1, "confirmed": True}]
-            })
+            AITaskList.model_validate(
+                {"tasks": [{"title": "Book Venue", "priority": 1, "confirmed": True}]}
+            )
 
     def test_task_priority_out_of_range(self):
         data = {"tasks": [{"title": "Task", "priority": 15}]}

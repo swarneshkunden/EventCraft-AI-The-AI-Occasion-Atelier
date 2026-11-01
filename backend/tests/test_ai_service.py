@@ -1,4 +1,5 @@
 """Tests for Gemini model configuration and safe provider diagnostics."""
+
 import asyncio
 import logging
 from collections import OrderedDict
@@ -80,7 +81,9 @@ def test_gemini_503_falls_back_to_available_flash_lite(monkeypatch):
             request = httpx.Request("POST", url)
             if model_name == "gemini-3.8-flash":
                 response = httpx.Response(503, request=request)
-                raise httpx.HTTPStatusError("provider unavailable", request=request, response=response)
+                raise httpx.HTTPStatusError(
+                    "provider unavailable", request=request, response=response
+                )
             return httpx.Response(
                 200,
                 json={"candidates": [{"content": {"parts": [{"text": "Fallback answer"}]}}]},

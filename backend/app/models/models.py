@@ -1,4 +1,5 @@
 """SQLAlchemy ORM models for the Event Planner application."""
+
 import enum
 import uuid
 from datetime import UTC, datetime
@@ -175,7 +176,9 @@ class BudgetCategory(Base):
 
 class Task(Base):
     __tablename__ = "tasks"
-    __table_args__ = (Index("ix_tasks_event_priority_due_date", "event_id", "priority", "due_date"),)
+    __table_args__ = (
+        Index("ix_tasks_event_priority_due_date", "event_id", "priority", "due_date"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_new_uuid)
     event_id: Mapped[str] = mapped_column(

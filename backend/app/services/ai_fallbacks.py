@@ -3,6 +3,7 @@
 These keep the headline planning features usable during a demo or an outage.
 They are clearly labelled estimates, never presented as confirmed prices.
 """
+
 from datetime import date, timedelta
 
 from app.models.models import Event

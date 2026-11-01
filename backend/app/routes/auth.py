@@ -1,4 +1,5 @@
 """Auth routes – signup, login, refresh, logout."""
+
 import asyncio
 import logging
 import secrets

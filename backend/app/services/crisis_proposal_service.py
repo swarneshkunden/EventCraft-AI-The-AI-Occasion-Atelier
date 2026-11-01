@@ -1,4 +1,5 @@
 """Persist, accept, undo, and decline crisis proposals."""
+
 from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
@@ -56,6 +57,7 @@ def capture_event_state(
         ),
     }
 
+
 def _event_records(
     event_id: str,
     db: Session,
@@ -65,6 +67,7 @@ def _event_records(
     tasks = db.query(Task).filter(Task.event_id == event_id).all()
     vendors = db.query(Vendor).filter(Vendor.event_id == event_id).all()
     return categories, tasks, vendors
+
 
 def create_crisis_proposal(
     event: Event,
@@ -84,6 +87,7 @@ def create_crisis_proposal(
     db.flush()
     proposal.options = [dict(option, ai_interpreted=ai_used) for option in proposal.options]
     return proposal
+
 
 def accept_crisis_proposal(
     proposal: PlanChangeProposal,
@@ -146,26 +150,31 @@ def accept_crisis_proposal(
     proposal.status = "accepted"
     proposal.selected_option_id = option_id
     proposal.accepted_at = datetime.now(UTC)
-    changed_fields = sorted({
-        field
-        for field, condition in (
-            ("event_date", changes.get("event_date") is not None),
-            ("guest_count", changes.get("guest_count") is not None),
-            ("budget", bool(changes["budget_updates"])),
-            ("tasks", bool(changes["task_updates"] or changes["tasks_to_add"])),
-            ("vendors", bool(changes["vendor_updates"])),
+    changed_fields = sorted(
+        {
+            field
+            for field, condition in (
+                ("event_date", changes.get("event_date") is not None),
+                ("guest_count", changes.get("guest_count") is not None),
+                ("budget", bool(changes["budget_updates"])),
+                ("tasks", bool(changes["task_updates"] or changes["tasks_to_add"])),
+                ("vendors", bool(changes["vendor_updates"])),
+            )
+            if condition
+        }
+    )
+    db.add(
+        PlanChangeAudit(
+            proposal_id=proposal.id,
+            event_id=event.id,
+            owner_id=proposal.owner_id,
+            action="accepted",
+            changed_fields=changed_fields,
         )
-        if condition
-    })
-    db.add(PlanChangeAudit(
-        proposal_id=proposal.id,
-        event_id=event.id,
-        owner_id=proposal.owner_id,
-        action="accepted",
-        changed_fields=changed_fields,
-    ))
+    )
     db.flush()
     return proposal
+
 
 def undo_crisis_proposal(proposal: PlanChangeProposal, db: Session) -> PlanChangeProposal:
     if proposal.status != "accepted" or not proposal.after_state:
@@ -176,8 +185,7 @@ def undo_crisis_proposal(proposal: PlanChangeProposal, db: Session) -> PlanChang
     categories, tasks, vendors = _event_records(event.id, db)
     if capture_event_state(event, categories, tasks, vendors) != proposal.after_state:
         raise ConflictError(
-            "The plan changed after this proposal was accepted. "
-            "Undo would overwrite newer work."
+            "The plan changed after this proposal was accepted. Undo would overwrite newer work."
         )
 
     baseline = proposal.baseline
@@ -228,15 +236,18 @@ def undo_crisis_proposal(proposal: PlanChangeProposal, db: Session) -> PlanChang
         )
         if condition
     }
-    db.add(PlanChangeAudit(
-        proposal_id=proposal.id,
-        event_id=event.id,
-        owner_id=proposal.owner_id,
-        action="undone",
-        changed_fields=sorted(fields),
-    ))
+    db.add(
+        PlanChangeAudit(
+            proposal_id=proposal.id,
+            event_id=event.id,
+            owner_id=proposal.owner_id,
+            action="undone",
+            changed_fields=sorted(fields),
+        )
+    )
     db.flush()
     return proposal
+
 
 def decline_crisis_proposal(proposal: PlanChangeProposal) -> PlanChangeProposal:
     if proposal.status != "pending":

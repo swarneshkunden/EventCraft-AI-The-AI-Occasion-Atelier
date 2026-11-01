@@ -2,6 +2,7 @@
 Authentication service – password hashing and JWT handling.
 Uses bcrypt for hashing and HS256 JWTs for tokens.
 """
+
 import hashlib
 import logging
 import secrets
@@ -25,6 +26,7 @@ _bearer = HTTPBearer(auto_error=False)
 
 # ── Password ──────────────────────────────────────────────────────────────────
 
+
 def hash_password(plain: str) -> str:
     return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
 
@@ -35,10 +37,9 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 # ── JWT access token ──────────────────────────────────────────────────────────
 
+
 def create_access_token(user_id: str) -> str:
-    expires = datetime.now(UTC) + timedelta(
-        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-    )
+    expires = datetime.now(UTC) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     payload = {"sub": user_id, "exp": expires, "type": "access"}
     return jwt.encode(payload, settings.APP_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
@@ -53,6 +54,7 @@ def decode_access_token(token: str) -> dict:
 
 
 # ── Refresh token ─────────────────────────────────────────────────────────────
+
 
 def _hash_token(raw: str) -> str:
     return hashlib.sha256(raw.encode()).hexdigest()
@@ -100,6 +102,7 @@ def revoke_all_user_tokens(user_id: str, db: Session) -> None:
 
 
 # ── Dependency: get current user ──────────────────────────────────────────────
+
 
 async def get_current_user(
     request: Request,
