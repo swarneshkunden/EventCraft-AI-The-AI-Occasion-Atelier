@@ -39,6 +39,7 @@ export async function renderTasksPage() {
   } catch (err) {
     console.error('Failed to load tasks', err);
     allTasks = [];
+    showToast('Failed to load tasks. Please try again.', 'error');
   }
 
   const readyCount = allTasks.filter((t) => t.is_ready && t.status !== 'completed').length;

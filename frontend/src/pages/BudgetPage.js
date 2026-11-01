@@ -44,6 +44,7 @@ export async function renderBudgetPage() {
   } catch (err) {
     console.error('Failed to load budget categories', err);
     localCategories = [];
+    showToast('Failed to load budget categories. Please try again.', 'error');
   }
 
   const totalSpent = localCategories.reduce((sum, c) => sum + (c.spent || 0), 0);

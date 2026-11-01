@@ -35,6 +35,7 @@ export async function renderGuestsPage() {
   } catch (err) {
     console.error('Failed to load guest list', err);
     guestsData = { guests: [], total: 0 };
+    showToast('Failed to load guest list. Please try again.', 'error');
   }
 
   const allGuests = guestsData.guests || [];

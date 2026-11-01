@@ -39,6 +39,7 @@ export async function renderVendorsPage() {
   } catch (err) {
     console.error('Failed to load vendors', err);
     vendorList = [];
+    showToast('Failed to load vendors. Please try again.', 'error');
   }
 
   const preferredCount = vendorList.filter((v) => v.is_selected).length;

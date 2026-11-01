@@ -31,6 +31,7 @@ export async function renderChatPage() {
   } catch (err) {
     console.error('Failed to load chat history', err);
     chatHistory = [];
+    showToast('Failed to load chat history. Please try again.', 'error');
   }
 
   const promptSuggestions = [
