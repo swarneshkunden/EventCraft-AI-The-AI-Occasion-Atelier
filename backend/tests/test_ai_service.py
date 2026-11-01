@@ -98,6 +98,22 @@ def test_gemini_503_falls_back_to_available_flash_lite(monkeypatch):
     assert requested_models == ["gemini-3.8-flash", "gemini-3.5-flash-lite"]
 
 
+@pytest.mark.parametrize("blank_key", ["", "   "])
+def test_blank_api_key_skips_the_provider_and_returns_fallback(monkeypatch, blank_key):
+    from app.services import ai_service
+
+    monkeypatch.setattr(ai_service.settings, "GEMINI_API_KEY", blank_key)
+
+    def fail_client(**kwargs):
+        raise AssertionError("no HTTP client should be created without an API key")
+
+    monkeypatch.setattr(ai_service.httpx, "AsyncClient", fail_client)
+
+    result = asyncio.run(ai_service._call_gemini("system", "user"))
+
+    assert result == ai_service._AI_FALLBACK
+
+
 def test_json_extractor_handles_fenced_embedded_array_and_invalid_output():
     from app.services.ai_service import extract_json_from_response
 

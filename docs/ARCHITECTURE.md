@@ -78,7 +78,9 @@ call_ai() -> is_ai_fallback? -> extract_json_from_response() -> schema.model_val
 
 - `generate_model()` is the single entry point; it raises `AIUnavailableError`
   when the provider reports an outage and `AIResponseError` when the payload is
-  not valid JSON or fails the schema.
+  not valid JSON or fails the schema. When `GEMINI_API_KEY` is blank,
+  `_call_gemini()` returns the fallback immediately instead of attempting a
+  doomed network call, so local and CI runs stay fast and offline.
 - `generate_with_fallback()` degrades **only** on `AIUnavailableError`, returning
   deterministic defaults from `app/services/ai_fallbacks.py` and `used_ai=False`.
   Malformed output still returns 502 on purpose: a broken contract should be

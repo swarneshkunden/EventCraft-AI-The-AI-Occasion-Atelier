@@ -85,6 +85,12 @@ def _build_payload(system_prompt: str, user_prompt: str) -> dict:
 
 async def _call_gemini(system_prompt: str, user_prompt: str) -> str:
     """Low-level Gemini call with exponential backoff retries."""
+    if not settings.GEMINI_API_KEY.strip():
+        # No key configured: skip the doomed network round-trips and let callers
+        # use their deterministic fallbacks immediately.
+        log.info("GEMINI_API_KEY is not configured; using deterministic fallback")
+        return _AI_FALLBACK
+
     payload = _build_payload(system_prompt, user_prompt)
     headers = {"X-Goog-Api-Key": settings.GEMINI_API_KEY, "Content-Type": "application/json"}
     model_names = [settings.GEMINI_MODEL]
