@@ -40,3 +40,30 @@ Open <http://127.0.0.1:8000>.
 - `CURRENCY`: display currency (default: `INR`).
 
 Additional database, AI, request-limit, and upload settings are defined in `backend/app/config/settings.py`.
+
+## Testing and code quality
+
+Backend (from the project root):
+
+```powershell
+Set-Location backend
+python -m pip install pytest-cov ruff
+..\.venv\Scripts\python.exe -m pytest --cov=app --cov-report=term-missing
+Set-Location ..
+.\.venv\Scripts\python.exe -m ruff check --config backend/pyproject.toml backend scripts
+.\.venv\Scripts\python.exe -m ruff format --check --config backend/pyproject.toml backend scripts
+```
+
+Frontend (Node 20+):
+
+```powershell
+Set-Location frontend
+npm ci
+npm run lint
+npm test
+Set-Location ..
+```
+
+Install the optional Git hooks with `pip install pre-commit` and `pre-commit install`.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for module responsibilities, the AI
+pipeline, the error model, and the authorization rules.
