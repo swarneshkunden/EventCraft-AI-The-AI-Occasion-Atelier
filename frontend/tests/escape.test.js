@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { escapeHtml } from '../src/utils/toast.js';
+import { escapeHtml } from '../src/utils/html.js';
 
 test('escapeHtml escapes HTML special characters to prevent XSS', () => {
   assert.equal(escapeHtml('<script>alert(1)</script>'), '&lt;script&gt;alert(1)&lt;/script&gt;');
@@ -13,7 +13,7 @@ test('escapeHtml escapes HTML special characters to prevent XSS', () => {
 test('escapeHtml handles non-strings and empty input', () => {
   assert.equal(escapeHtml(null), '');
   assert.equal(escapeHtml(undefined), '');
-  assert.equal(escapeHtml(42), '');
+  assert.equal(escapeHtml(42), '42');
   assert.equal(escapeHtml(''), '');
 });
 
