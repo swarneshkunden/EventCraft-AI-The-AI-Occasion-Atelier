@@ -9,7 +9,9 @@ import {
   generateTaskList,
 } from '../services/events.js';
 import { formatDate } from '../utils/formatters.js';
-import { showToast, escapeHtml } from '../utils/toast.js';
+import { showToast } from '../utils/toast.js';
+import { escapeHtml, html } from '../utils/html.js';
+import { bindFilterButtons, emptyState, filterTabs } from '../components/ui.js';
 import { icons } from '../utils/icons.js';
 
 let allTasks = [];
@@ -21,14 +23,12 @@ export async function renderTasksPage() {
   if (!event) {
     return `
       <div class="page-body">
-        <div class="empty-state card">
-          <div class="empty-icon">${icons.timeline(36)}</div>
-          <h1 class="serif" style="font-size: 1.4rem; margin-bottom: 8px;">Milestones & Timeline</h1>
-          <h2 class="serif" style="font-size: 1.4rem; margin-bottom: 8px;">No Active Celebration Selected</h2>
-          <p style="color: var(--clr-text-muted); max-width: 440px; margin: 0 auto 20px;">
-            Select or create a celebration to generate your milestone schedule.
-          </p>
-        </div>
+        ${emptyState({
+          icon: icons.timeline(36),
+          eyebrow: 'Milestones & Timeline',
+          title: 'No Active Celebration Selected',
+          message: 'Select or create a celebration to generate your milestone schedule.',
+        })}
       </div>
     `;
   }
@@ -108,18 +108,16 @@ export async function renderTasksPage() {
 
         <!-- Filter tabs -->
         <div style="display: flex; gap: 8px; margin-top: 24px; border-top: 1px solid var(--clr-border); padding-top: 14px; flex-wrap: wrap;">
-          <button class="btn btn-ghost btn-sm task-filter-btn ${currentFilter === 'all' ? 'btn-primary' : ''}" data-filter="all">
-            All Tasks (${allTasks.length})
-          </button>
-          <button class="btn btn-ghost btn-sm task-filter-btn ${currentFilter === 'ready' ? 'btn-primary' : ''}" data-filter="ready">
-            🟢 Ready to Execute (${readyCount})
-          </button>
-          <button class="btn btn-ghost btn-sm task-filter-btn ${currentFilter === 'blocked' ? 'btn-primary' : ''}" data-filter="blocked">
-            ⛔ Blocked (${blockedCount})
-          </button>
-          <button class="btn btn-ghost btn-sm task-filter-btn ${currentFilter === 'done' ? 'btn-primary' : ''}" data-filter="done">
-            ✓ Completed (${doneCount})
-          </button>
+          ${filterTabs({
+            className: 'task-filter-btn',
+            active: currentFilter,
+            items: [
+              { value: 'all', label: html`All Tasks (${allTasks.length})` },
+              { value: 'ready', label: html`🟢 Ready to Execute (${readyCount})` },
+              { value: 'blocked', label: html`⛔ Blocked (${blockedCount})` },
+              { value: 'done', label: html`✓ Completed (${doneCount})` },
+            ],
+          })}
         </div>
       </div>
 
@@ -235,16 +233,12 @@ export function initTasksPageEvents() {
   if (!event) return;
 
   // Filter click
-  document.querySelectorAll('.task-filter-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.task-filter-btn').forEach((b) => b.classList.remove('btn-primary'));
-      btn.classList.add('btn-primary');
-      currentFilter = btn.getAttribute('data-filter');
-      const container = document.getElementById('tasks-list-container');
-      if (container) {
-        container.innerHTML = renderTaskList(allTasks, currentFilter);
-      }
-    });
+  bindFilterButtons('.task-filter-btn', (filter) => {
+    currentFilter = filter;
+    const container = document.getElementById('tasks-list-container');
+    if (container) {
+      container.innerHTML = renderTaskList(allTasks, currentFilter);
+    }
   });
 
   // Checkbox toggle

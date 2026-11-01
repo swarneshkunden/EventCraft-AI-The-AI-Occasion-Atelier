@@ -1,6 +1,7 @@
 /**
  * Toast notifications & accessibility announcements.
  */
+import { escapeHtml } from './html.js';
 
 export function showToast(message, type = 'info', duration = 3500) {
   const container = document.getElementById('toast-container');
@@ -39,14 +40,4 @@ export function announceToScreenReader(message, priority = 'polite') {
   if (el) {
     el.textContent = message;
   }
-}
-
-export function escapeHtml(str) {
-  if (typeof str !== 'string') return '';
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
 }

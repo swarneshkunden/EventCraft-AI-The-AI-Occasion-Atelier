@@ -9,7 +9,8 @@ import {
   selectEventById,
 } from '../services/events.js';
 import { openNewEventModal } from './NewEventModal.js';
-import { escapeHtml, showToast } from '../utils/toast.js';
+import { showToast } from '../utils/toast.js';
+import { escapeHtml } from '../utils/html.js';
 import { icons } from '../utils/icons.js';
 
 export function renderSidebar(currentRoute) {

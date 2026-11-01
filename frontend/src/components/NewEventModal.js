@@ -5,7 +5,8 @@
  */
 import { createNewEvent, updateEventDetails } from '../services/events.js';
 import { getCurrentUser } from '../services/auth.js';
-import { showToast, escapeHtml } from '../utils/toast.js';
+import { showToast } from '../utils/toast.js';
+import { escapeHtml } from '../utils/html.js';
 import { icons } from '../utils/icons.js';
 import { formatCurrency } from '../utils/formatters.js';
 

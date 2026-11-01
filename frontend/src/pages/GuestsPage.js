@@ -9,7 +9,8 @@ import {
   deleteGuestItem,
   importGuestsCsv,
 } from '../services/events.js';
-import { showToast, escapeHtml } from '../utils/toast.js';
+import { showToast } from '../utils/toast.js';
+import { escapeHtml } from '../utils/html.js';
 
 let guestsData = { guests: [], total: 0, page: 1, page_size: 50 };
 let currentFilter = 'all';

@@ -10,7 +10,7 @@ import {
   proposeCrisisResponse,
   undoCrisisProposal,
 } from '../services/events.js';
-import { escapeHtml } from '../utils/toast.js';
+import { escapeHtml } from '../utils/html.js';
 
 let activeProposal = null;
 let acceptedProposalId = null;

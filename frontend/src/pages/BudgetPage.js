@@ -13,7 +13,9 @@ import {
   updateTaskItem,
 } from '../services/events.js';
 import { formatCurrency, formatPercent } from '../utils/formatters.js';
-import { showToast, escapeHtml } from '../utils/toast.js';
+import { showToast } from '../utils/toast.js';
+import { escapeHtml } from '../utils/html.js';
+import { emptyState } from '../components/ui.js';
 import { icons } from '../utils/icons.js';
 
 let localCategories = [];
@@ -26,14 +28,13 @@ export async function renderBudgetPage() {
   if (!event) {
     return `
       <div class="page-body">
-        <div class="empty-state card">
-          <div class="empty-icon">${icons.budget(36)}</div>
-          <h1 class="serif" style="font-size: 1.4rem; margin-bottom: 8px;">Budget</h1>
-          <h2 class="serif" style="font-size: 1.4rem; margin-bottom: 8px;">No Active Celebration Selected</h2>
-          <p style="color: var(--clr-text-muted); max-width: 440px; margin: 0 auto 20px;">
-            Select a celebration from the top navigation or create a new celebration to curate your budget.
-          </p>
-        </div>
+        ${emptyState({
+          icon: icons.budget(36),
+          eyebrow: 'Budget',
+          title: 'No Active Celebration Selected',
+          message:
+            'Select a celebration from the top navigation or create a new celebration to curate your budget.',
+        })}
       </div>
     `;
   }

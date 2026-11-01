@@ -4,7 +4,7 @@
 import { getCurrentEvent } from '../services/events.js';
 import { daysUntil } from '../utils/formatters.js';
 import { openNewEventModal } from './NewEventModal.js';
-import { escapeHtml } from '../utils/toast.js';
+import { escapeHtml } from '../utils/html.js';
 import { icons } from '../utils/icons.js';
 import { getPreferredTheme, toggleTheme } from '../utils/theme.js';
 

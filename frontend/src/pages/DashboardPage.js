@@ -13,7 +13,9 @@ import {
 } from '../services/events.js';
 import { formatCurrency, formatDate, daysUntil, formatPercent } from '../utils/formatters.js';
 import { openNewEventModal } from '../components/NewEventModal.js';
-import { escapeHtml, showToast } from '../utils/toast.js';
+import { showToast } from '../utils/toast.js';
+import { escapeHtml, html, raw } from '../utils/html.js';
+import { statCard } from '../components/ui.js';
 import { icons } from '../utils/icons.js';
 
 export async function renderDashboardPage() {
@@ -44,7 +46,7 @@ export async function renderDashboardPage() {
   let categories = [];
   let tasks = [];
   let vendors = [];
-  let guestSummary = { total: 0, attending: 0, pending: 0, declined: 0 };
+  const guestSummary = { total: 0, attending: 0, pending: 0, declined: 0 };
 
   try {
     const [catRes, taskRes, vendorRes, guestRes] = await Promise.allSettled([
@@ -69,7 +71,6 @@ export async function renderDashboardPage() {
   }
 
   const totalSpent = categories.reduce((sum, c) => sum + (c.spent || 0), 0);
-  const totalAllocated = categories.reduce((sum, c) => sum + (c.allocated || 0), 0);
   const remainingBudget = event.total_budget - totalSpent;
   const budgetSpentPct = formatPercent(totalSpent, event.total_budget);
 
@@ -163,9 +164,10 @@ export async function renderDashboardPage() {
 
       <!-- Top Financial & Milestone Stats -->
       <div class="stat-grid">
-        <div class="stat-card">
-          <div class="stat-label">Total Budget</div>
-          <div class="stat-value num">${renderInlineField('budget', formatCurrency(event.total_budget, currency), 'total budget')}</div>
+        ${statCard({
+          label: 'Total Budget',
+          value: renderInlineField('budget', formatCurrency(event.total_budget, currency), 'total budget'),
+          body: html`
           <div style="margin-top: 8px;">
             <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--clr-text-muted); margin-bottom: 4px;">
               <span>Spent: ${formatCurrency(totalSpent, currency)}</span>
@@ -177,43 +179,46 @@ export async function renderDashboardPage() {
           </div>
           <div style="font-size: 0.75rem; margin-top: 6px; font-weight: 600; color: ${remainingBudget < 0 ? 'var(--clr-danger)' : 'var(--clr-success)'};">
             ${remainingBudget < 0 ? '⚠️ Over budget by ' + formatCurrency(Math.abs(remainingBudget), currency) : '✓ ' + formatCurrency(remainingBudget, currency) + ' available'}
-          </div>
-        </div>
+          </div>`,
+        })}
 
-        <div class="stat-card">
-          <div class="stat-label">Milestone Execution</div>
-          <div class="stat-value num">${doneTasks} / ${tasks.length}</div>
+        ${statCard({
+          label: 'Milestone Execution',
+          value: `${doneTasks} / ${tasks.length}`,
+          body: html`
           <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
             <span class="badge badge-success">${readyTasks.length} Ready</span>
-            ${blockedTasks.length > 0 ? `<span class="badge badge-danger">${blockedTasks.length} Blocked</span>` : ''}
+            ${blockedTasks.length > 0 ? raw(`<span class="badge badge-danger">${blockedTasks.length} Blocked</span>`) : ''}
           </div>
           <div style="font-size: 0.75rem; color: var(--clr-text-muted); margin-top: 6px;">
             ${formatPercent(doneTasks, tasks.length)}% completed on schedule
-          </div>
-        </div>
+          </div>`,
+        })}
 
-        <div class="stat-card">
-          <div class="stat-label">Vendor Contracts</div>
-          <div class="stat-value num">${bookedVendors} / ${vendors.length}</div>
+        ${statCard({
+          label: 'Vendor Contracts',
+          value: `${bookedVendors} / ${vendors.length}`,
+          body: html`
           <div style="font-size: 0.75rem; color: var(--clr-text-muted); margin-top: 8px;">
             Confirmed contracts
           </div>
           <div style="font-size: 0.75rem; color: var(--clr-accent-foreground); margin-top: 6px; font-weight: 600;">
             ${vendors.filter((v) => v.status === 'researching' || v.status === 'contacted').length} in active negotiation
-          </div>
-        </div>
+          </div>`,
+        })}
 
-        <div class="stat-card">
-          <div class="stat-label">Guest RSVP Rate</div>
-          <div class="stat-value num">${guestSummary.attending} Confirmed</div>
+        ${statCard({
+          label: 'Guest RSVP Rate',
+          value: `${guestSummary.attending} Confirmed`,
+          body: html`
           <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
             <span class="badge badge-info">${guestSummary.pending} Pending</span>
-            ${guestSummary.declined > 0 ? `<span class="badge badge-muted">${guestSummary.declined} Declined</span>` : ''}
+            ${guestSummary.declined > 0 ? raw(`<span class="badge badge-muted">${guestSummary.declined} Declined</span>`) : ''}
           </div>
           <div style="font-size: 0.75rem; color: var(--clr-text-muted); margin-top: 6px;">
             ${guestSummary.total} Total on invite register
-          </div>
-        </div>
+          </div>`,
+        })}
       </div>
 
       <section class="card event-preferences-card" aria-labelledby="event-preferences-title">

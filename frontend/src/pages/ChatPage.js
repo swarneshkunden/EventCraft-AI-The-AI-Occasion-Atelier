@@ -7,10 +7,10 @@ import {
   sendChatMessage,
   getEventIdeas,
 } from '../services/events.js';
-import { showToast, escapeHtml } from '../utils/toast.js';
+import { showToast } from '../utils/toast.js';
+import { escapeHtml } from '../utils/html.js';
 
 let chatHistory = [];
-let generatedIdeas = null;
 
 export async function renderChatPage() {
   const event = getCurrentEvent();

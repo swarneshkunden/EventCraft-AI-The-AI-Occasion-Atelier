@@ -15,3 +15,5 @@ htmlcov/
 uploads/
 .venv/
 venv/
+node_modules/
+.eslintcache

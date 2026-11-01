@@ -11,7 +11,9 @@ import {
   generateVendorQuestions,
 } from '../services/events.js';
 import { formatCurrency } from '../utils/formatters.js';
-import { showToast, escapeHtml } from '../utils/toast.js';
+import { showToast } from '../utils/toast.js';
+import { escapeHtml } from '../utils/html.js';
+import { bindFilterButtons, filterTabs } from '../components/ui.js';
 
 let vendorList = [];
 let currentFilter = 'all';
@@ -65,12 +67,14 @@ export async function renderVendorsPage() {
 
         <!-- Filter tabs -->
         <div style="display: flex; gap: 8px; margin-top: 20px; border-bottom: 1px solid var(--clr-border); padding-bottom: 8px; flex-wrap: wrap;">
-          <button class="btn btn-ghost btn-sm vendor-filter-btn ${currentFilter === 'all' ? 'btn-primary' : ''}" data-filter="all">
-            All Vendors (${vendorList.length})
-          </button>
-          <button class="btn btn-ghost btn-sm vendor-filter-btn ${currentFilter === 'preferred' ? 'btn-primary' : ''}" data-filter="preferred">
-            Preferred candidates (${preferredCount})
-          </button>
+          ${filterTabs({
+            className: 'vendor-filter-btn',
+            active: currentFilter,
+            items: [
+              { value: 'all', label: `All Vendors (${vendorList.length})` },
+              { value: 'preferred', label: `Preferred candidates (${preferredCount})` },
+            ],
+          })}
         </div>
       </div>
 
@@ -245,16 +249,12 @@ export function initVendorsPageEvents() {
   if (!event) return;
 
   // Filter click
-  document.querySelectorAll('.vendor-filter-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.vendor-filter-btn').forEach((b) => b.classList.remove('btn-primary'));
-      btn.classList.add('btn-primary');
-      currentFilter = btn.getAttribute('data-filter');
-      const container = document.getElementById('vendors-grid-container');
-      if (container) {
-        container.innerHTML = renderVendorsGrid(vendorList, currentFilter, currency);
-      }
-    });
+  bindFilterButtons('.vendor-filter-btn', (filter) => {
+    currentFilter = filter;
+    const container = document.getElementById('vendors-grid-container');
+    if (container) {
+      container.innerHTML = renderVendorsGrid(vendorList, currentFilter, currency);
+    }
   });
 
   // Change status
@@ -285,7 +285,7 @@ export function initVendorsPageEvents() {
     btn.innerHTML = '<span class="spinner spinner-sm"></span> Analyzing...';
 
     try {
-      const updated = await generateVendorQuestions(event.id, vendorId);
+      await generateVendorQuestions(event.id, vendorId);
       vendorList = (await getVendorList(event.id)) || [];
       const container = document.getElementById('vendors-grid-container');
       if (container) {
