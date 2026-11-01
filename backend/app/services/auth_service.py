@@ -68,6 +68,13 @@ def create_refresh_token(user_id: str, db: Session) -> str:
     return raw
 
 
+def _is_expired(expires_at: datetime) -> bool:
+    """Treat timezone-naive timestamps (as returned by SQLite) as UTC."""
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=UTC)
+    return expires_at < datetime.now(UTC)
+
+
 def rotate_refresh_token(raw: str, db: Session) -> tuple[str, str]:
     """Validates and rotates a refresh token. Returns (new_raw, user_id)."""
     token_hash = _hash_token(raw)
@@ -76,7 +83,7 @@ def rotate_refresh_token(raw: str, db: Session) -> tuple[str, str]:
         .filter(RefreshToken.token_hash == token_hash, RefreshToken.revoked.is_(False))
         .first()
     )
-    if not record or record.expires_at < datetime.now(UTC):
+    if not record or _is_expired(record.expires_at):
         raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
 
     # Revoke old token, issue new one

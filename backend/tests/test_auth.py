@@ -182,3 +182,92 @@ class TestDataIsolation:
         # User 2 should not see user 1's event
         resp2 = client.get(f"/api/events/{event_id}")
         assert resp2.status_code == 404
+
+
+class TestRefreshTokens:
+    def _login(self, client, email="refresh@test.com"):
+        client.post("/api/auth/signup", json={
+            "email": email, "password": "Valid@1234", "display_name": "Refresh User"
+        })
+        response = client.post("/api/auth/login", json={
+            "email": email, "password": "Valid@1234"
+        })
+        assert response.status_code == 200
+
+    def test_refresh_cookie_rotates_the_refresh_token(self, client):
+        self._login(client)
+        original = client.cookies.get("refresh_token")
+
+        response = client.post("/api/auth/refresh-cookie")
+
+        assert response.status_code == 200
+        rotated = client.cookies.get("refresh_token")
+        assert rotated and rotated != original
+
+    def test_replaying_a_rotated_token_is_rejected(self, client):
+        self._login(client)
+        original = client.cookies.get("refresh_token")
+        assert client.post("/api/auth/refresh-cookie").status_code == 200
+
+        replay = client.post(
+            "/api/auth/refresh-cookie", cookies={"refresh_token": original}
+        )
+
+        assert replay.status_code == 401
+
+    def test_refresh_without_a_cookie_is_rejected(self, client):
+        response = client.post("/api/auth/refresh-cookie")
+
+        assert response.status_code == 401
+
+    def test_unknown_refresh_token_is_rejected(self, client):
+        response = client.post(
+            "/api/auth/refresh-cookie", cookies={"refresh_token": "not-a-real-token"}
+        )
+
+        assert response.status_code == 401
+
+    def test_expired_refresh_token_is_rejected(self, client, db):
+        from datetime import UTC, datetime, timedelta
+
+        from app.models.models import RefreshToken, User
+        from app.services.auth_service import _hash_token
+
+        self._login(client)
+        user = db.query(User).filter(User.email == "refresh@test.com").first()
+        db.add(
+            RefreshToken(
+                user_id=user.id,
+                token_hash=_hash_token("expired-token"),
+                expires_at=datetime.now(UTC) - timedelta(days=1),
+            )
+        )
+        db.commit()
+
+        response = client.post(
+            "/api/auth/refresh-cookie", cookies={"refresh_token": "expired-token"}
+        )
+
+        assert response.status_code == 401
+
+    def test_legacy_json_refresh_endpoint_is_disabled(self, client):
+        response = client.post("/api/auth/refresh")
+
+        assert response.status_code == 400
+
+    def test_malformed_access_token_is_rejected(self, client):
+        response = client.get(
+            "/api/auth/me", headers={"Authorization": "Bearer not-a-jwt"}
+        )
+
+        assert response.status_code == 401
+
+    def test_token_for_an_unknown_user_is_rejected(self, client):
+        from app.services.auth_service import create_access_token
+
+        token = create_access_token("missing-user-id")
+        response = client.get(
+            "/api/auth/me", headers={"Authorization": f"Bearer {token}"}
+        )
+
+        assert response.status_code == 401
