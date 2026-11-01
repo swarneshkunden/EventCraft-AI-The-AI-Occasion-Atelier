@@ -444,3 +444,50 @@ class TestGuestRoutes:
         assert "guests" in data
         assert "total" in data
         assert len(data["guests"]) <= 3
+
+
+class TestCsvImportEndpoint:
+    def test_csv_import_endpoint(self, auth_client, sample_event):
+        import io
+
+        event_id = sample_event["id"]
+        csv_content = (
+            "name,email,phone,rsvp_status,dietary_needs,accessibility_needs\n"
+            "Kavita,kavita@test.com,+91 999,confirmed,Vegetarian,\n"
+            "Rohan,rohan@test.com,+91 888,pending,Gluten-Free,Wheelchair access\n"
+        )
+        resp = auth_client.post(
+            f"/api/events/{event_id}/guests/import-csv",
+            files={"file": ("guests.csv", io.BytesIO(csv_content.encode("utf-8")), "text/csv")},
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["imported"] == 2
+        assert data["skipped"] == 0
+        assert "Imported 2 guests" in data["message"]
+
+        guests = auth_client.get(f"/api/events/{event_id}/guests").json()["guests"]
+        names = {g["name"] for g in guests}
+        assert {"Kavita", "Rohan"} <= names
+
+    def test_csv_import_endpoint_rejects_bad_file(self, auth_client, sample_event):
+        import io
+
+        event_id = sample_event["id"]
+        resp = auth_client.post(
+            f"/api/events/{event_id}/guests/import-csv",
+            files={"file": ("notes.txt", io.BytesIO(b"hello world"), "text/plain")},
+        )
+        assert resp.status_code == 400
+
+    def test_csv_import_endpoint_rejects_missing_name_column(self, auth_client, sample_event):
+        import io
+
+        event_id = sample_event["id"]
+        csv_content = "email,phone\ntest@example.com,123\n"
+        resp = auth_client.post(
+            f"/api/events/{event_id}/guests/import-csv",
+            files={"file": ("guests.csv", io.BytesIO(csv_content.encode("utf-8")), "text/csv")},
+        )
+        assert resp.status_code == 400
+

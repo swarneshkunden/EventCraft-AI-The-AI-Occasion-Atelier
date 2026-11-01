@@ -67,3 +67,25 @@ Set-Location ..
 Install the optional Git hooks with `pip install pre-commit` and `pre-commit install`.
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for module responsibilities, the AI
 pipeline, the error model, and the authorization rules.
+
+## Deployment
+
+1. Copy `.env.example` to `.env` and replace `APP_SECRET_KEY` with a fresh random value (32+ characters):
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+2. Set `DATABASE_URL` to a durable PostgreSQL connection (SQLite is ephemeral and unsuitable for production).
+3. For production, set `APP_ENV=production` and `ALLOWED_ORIGINS` to your HTTPS origins only. The settings validator rejects ephemeral SQLite, example secrets, and non-HTTPS origins in production.
+4. Run migrations and start the server:
+   ```powershell
+   Set-Location backend
+   python -m alembic upgrade head
+   python -m uvicorn app.main:app --host 0.0.0.0 --port 8080
+   ```
+   Or build and run with Docker:
+   ```powershell
+   docker-compose up -d postgres
+   docker build -t eventcraft-ai .
+   docker run -p 8080:8080 --env-file .env eventcraft-ai
+   ```
+5. The `/healthz` endpoint probes database connectivity and is suitable for a load-balancer health check. `/api/health` returns process health.

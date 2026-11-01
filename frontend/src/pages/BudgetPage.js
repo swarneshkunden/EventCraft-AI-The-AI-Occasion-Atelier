@@ -229,7 +229,7 @@ function renderCategoryRows(categories, currency) {
       const isOver = (cat.spent || 0) > (cat.allocated || 0);
 
       return `
-      <div class="budget-category-row" data-idx="${idx}" style="padding: 16px 24px; display: grid; grid-template-columns: minmax(180px, 2fr) minmax(140px, 1.2fr) minmax(140px, 1.2fr) minmax(140px, 1.2fr) 40px; gap: 16px; align-items: center; border-bottom: 1px solid var(--clr-border); transition: background var(--transition-fast);">
+      <div class="budget-category-row" data-idx="${idx}" style="padding: 16px 24px; display: grid; grid-template-columns: minmax(170px, 2fr) minmax(130px, 1.2fr) minmax(130px, 1.2fr) minmax(150px, 1.4fr) minmax(120px, 1.2fr) 40px; gap: 12px; align-items: center; border-bottom: 1px solid var(--clr-border); transition: background var(--transition-fast);">
 
         <!-- Category Title & Badge -->
         <div>
@@ -280,6 +280,19 @@ function renderCategoryRows(categories, currency) {
           />
         </div>
 
+        <!-- Notes -->
+        <div>
+          <label for="category-notes-${idx}" style="font-size: 0.7rem; color: var(--clr-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.06em; display: block; margin-bottom: 4px;">Notes</label>
+          <input
+            type="text"
+            id="category-notes-${idx}"
+            class="input-cat-notes form-control"
+            value="${escapeHtml(cat.notes || '')}"
+            placeholder="Notes"
+            style="padding: 6px 10px; font-size: 0.85rem;"
+          />
+        </div>
+
         <!-- Utilization Bar -->
         <div>
           <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; margin-bottom: 4px;">
@@ -320,7 +333,8 @@ export function initBudgetPageEvents() {
       const name = row.querySelector('.input-cat-name')?.value.trim() || 'Untitled';
       const allocated = parseFloat(row.querySelector('.input-cat-allocated')?.value) || 0;
       const spent = parseFloat(row.querySelector('.input-cat-spent')?.value) || 0;
-      localCategories.push({ name, allocated, spent });
+      const notes = row.querySelector('.input-cat-notes')?.value.trim() || '';
+      localCategories.push({ name, allocated, spent, notes });
       totalAlloc += allocated;
       totalSpent += spent;
     });
@@ -385,7 +399,7 @@ export function initBudgetPageEvents() {
     const list = document.getElementById('budget-categories-list');
     if (!list) return;
 
-    localCategories.push({ name: 'New Category', allocated: 0, spent: 0 });
+    localCategories.push({ name: 'New Category', allocated: 0, spent: 0, notes: '' });
     list.innerHTML = renderCategoryRows(localCategories, currency);
     refreshTotals();
   });

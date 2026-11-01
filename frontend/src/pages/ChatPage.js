@@ -133,6 +133,55 @@ function renderChatMessages(messages) {
     .join('');
 }
 
+function renderIdeasCard(sectionTitle, items, icon) {
+  if (!items || items.length === 0) {
+    return `
+      <section class="ideas-section">
+        <div class="ideas-section-header">${icon || '✨'} ${escapeHtml(sectionTitle)}</div>
+        <p class="text-muted ideas-empty">No ${escapeHtml(sectionTitle).toLowerCase()} suggestions.</p>
+      </section>
+    `;
+  }
+  return `
+    <section class="ideas-section">
+      <div class="ideas-section-header">${icon || '✨'} ${escapeHtml(sectionTitle)}</div>
+      <div class="ideas-card-grid">
+        ${items
+          .map(
+            (item) => `
+          <article class="ideas-card">
+            <div class="ideas-card-name">${escapeHtml(item.name)}</div>
+            <div class="ideas-card-desc">${escapeHtml(item.description)}</div>
+            <div class="ideas-card-cost"><strong>Est. cost:</strong> ${escapeHtml(String(item.estimated_cost || 'Not stated'))}</div>
+            ${item.cheaper_alternative ? `<div class="ideas-card-alt"><strong>Cheaper alternative:</strong> ${escapeHtml(item.cheaper_alternative)}</div>` : ''}
+          </article>
+        `
+          )
+          .join('')}
+      </div>
+    </section>
+  `;
+}
+
+function renderIdeas(ideas) {
+  if (!ideas || typeof ideas !== 'object') {
+    return `<p class="text-muted">No ideas returned.</p>`;
+  }
+  return `
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <h2 style="font-weight: 700; color: var(--clr-primary-light);">🎨 Personalized Themes, Decor & Menu Inspiration</h2>
+      <button id="btn-close-ideas" class="btn btn-ghost btn-sm" style="font-size: 0.8rem;">✕ Close</button>
+    </div>
+    <div class="ideas-grid">
+      ${renderIdeasCard('Themes', ideas.themes, '🎭')}
+      ${renderIdeasCard('Decor', ideas.decor, '🪔')}
+      ${renderIdeasCard('Menu', ideas.menu, '🍽️')}
+      ${renderIdeasCard('Activities', ideas.activities, '🎪')}
+    </div>
+    <p class="text-muted ideas-note">All costs are estimates, not confirmed prices. Verify with vendors before booking.</p>
+  `;
+}
+
 export function initChatPageEvents() {
   const event = getCurrentEvent();
   if (!event) return;
@@ -226,19 +275,8 @@ export function initChatPageEvents() {
 
       ideasBox.style.display = 'block';
 
-      // Render ideas
-      const rawText = ideas.raw || JSON.stringify(ideas, null, 2);
-      ideasBox.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <h2 style="font-weight: 700; color: var(--clr-primary-light);">
-            🎨 Personalized Themes, Decor & Menu Inspiration
-          </h4>
-          <button id="btn-close-ideas" class="btn btn-ghost btn-sm" style="font-size: 0.8rem;">✕ Close</button>
-        </div>
-        <div style="font-size: 0.85rem; line-height: 1.6; color: var(--clr-text); white-space: pre-wrap;">
-          ${escapeHtml(rawText)}
-        </div>
-      `;
+      // Render ideas as structured cards
+      ideasBox.innerHTML = renderIdeas(ideas);
 
       document.getElementById('btn-close-ideas')?.addEventListener('click', () => {
         ideasBox.style.display = 'none';

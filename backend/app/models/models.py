@@ -190,7 +190,7 @@ class Task(Base):
         Enum(TaskStatus), nullable=False, default=TaskStatus.pending
     )
     due_date: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    # Dependency IDs stored as JSON array of task IDs
+    # Dependency titles stored as JSON array of task titles (matched by title in readiness logic)
     depends_on: Mapped[list] = mapped_column(
         JSON().with_variant(JSONB(), "postgresql"), nullable=False, default=list
     )
